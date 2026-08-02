@@ -6,10 +6,18 @@ import {
   Patch,
   Param,
   Delete,
+  Req,
+  Res,
+  UseGuards,
+  HttpStatus,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
+import { Request, Response } from 'express';
+import { AccessTokenGuard } from './guards/accessToken.guard';
+import { JwtPayload } from './auth.types';
 
 @Controller('auth')
 export class AuthController {
@@ -18,6 +26,20 @@ export class AuthController {
   @Post()
   create(@Body() createAuthDto: CreateAuthDto) {
     return this.authService.create(createAuthDto);
+  }
+
+  @Post('logout')
+  @UseGuards(AccessTokenGuard)
+  async logout(@Req() req: Request, @Res() res: Response) {
+    const user = req.user as JwtPayload | undefined;
+
+    if (!user?.sub) {
+      throw new UnauthorizedException('Пользователь не авторизован');
+    }
+
+    await this.authService.deleteRefreshToken(user.sub);
+    res.clearCookie('refreshToken');
+    return res.status(HttpStatus.OK).json({ message: 'Выход выполнен успешно' });
   }
 
   @Get()
