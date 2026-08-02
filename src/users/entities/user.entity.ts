@@ -34,5 +34,5 @@ export class User {
 
   @Exclude()
   @Column({ select: false, nullable: true, type: 'text' })
-  refreshToken: string;
+  refreshToken: string | null;
 }
