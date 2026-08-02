@@ -10,7 +10,7 @@ export const dbConfig = registerAs('DB_CONFIG', () => ({
   database: process.env.DB_NAME,
   entities: [__dirname + '/**/*.entity{.ts,.js}'],
   migrations: [__dirname + '/migrations/*{.ts,.js}'],
-  synchronize: false,
+  synchronize: true,
 } as DataSourceOptions));
 
 export type TDbConfig = ConfigType<typeof dbConfig>;
