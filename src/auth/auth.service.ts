@@ -1,11 +1,20 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConfigType } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
+import { jwtConfig } from '../config/jwt.config';
 import { UsersService } from '../users/users.service';
+import { JwtPayload } from './auth.types';
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly jwtService: JwtService,
+    @Inject(jwtConfig.KEY)
+    private readonly jwtConfiguration: ConfigType<typeof jwtConfig>,
+  ) {}
 
   create(createAuthDto: CreateAuthDto) {
     void createAuthDto;
@@ -33,5 +42,41 @@ export class AuthService {
 
   async deleteRefreshToken(userId: string): Promise<void> {
     await this.usersService.clearRefreshToken(userId);
+  }
+
+  async refreshFromPayload(userPayload: JwtPayload) {
+    const user = await this.usersService.findById(userPayload.sub);
+
+    if (!user) {
+      throw new UnauthorizedException('Пользователь не найден');
+    }
+
+    const accessToken = this.jwtService.sign(
+      { sub: user.id, email: user.email, role: user.role },
+      {
+        secret: this.jwtConfiguration.accessSecret,
+        expiresIn: this.jwtConfiguration.accessExpiresIn,
+      },
+    );
+
+    const newRefreshToken = this.jwtService.sign(
+      { sub: user.id, email: user.email, role: user.role },
+      {
+        secret: this.jwtConfiguration.refreshSecret,
+        expiresIn: this.jwtConfiguration.refreshExpiresIn,
+      },
+    );
+
+    await this.usersService.updateRefreshToken(user.id, newRefreshToken);
+
+    return {
+      user: {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+      },
+      accessToken,
+      refreshToken: newRefreshToken,
+    };
   }
 }

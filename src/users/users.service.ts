@@ -36,6 +36,14 @@ export class UsersService {
     return `This action removes a #${id} user`;
   }
 
+  async findById(id: string): Promise<User | null> {
+    return this.userRepository.findOne({ where: { id } });
+  }
+
+  async updateRefreshToken(userId: string, refreshToken: string): Promise<void> {
+    await this.userRepository.update(userId, { refreshToken });
+  }
+
   async clearRefreshToken(userId: string): Promise<void> {
     await this.userRepository.update(userId, { refreshToken: null });
   }

@@ -28,6 +28,24 @@ export class AuthController {
     return this.authService.create(createAuthDto);
   }
 
+  @Post('refresh')
+  @UseGuards(AccessTokenGuard)
+  async refresh(@Req() req: Request, @Res() res: Response) {
+    const user = req.user as JwtPayload | undefined;
+
+    if (!user?.sub) {
+      throw new UnauthorizedException('Пользователь не авторизован');
+    }
+
+    const result = await this.authService.refreshFromPayload(user);
+
+    res.cookie('accessToken', result.accessToken);
+
+    return {
+      refreshToken: result.refreshToken,
+    };
+  }
+
   @Post('logout')
   @UseGuards(AccessTokenGuard)
   async logout(@Req() req: Request, @Res() res: Response) {
