@@ -1,10 +1,9 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { ChangePasswordDto } from './dto/change-password.dto';
 import { User } from './entities/user.entity';
 
 @Injectable()
@@ -32,25 +31,15 @@ export class UsersService {
     return user;
   }
 
-  async changePassword(id: string, dto: ChangePasswordDto): Promise<{ message: string }> {
-    const user = await this.userRepository.findOne({
+  async findByIdWithPassword(id: string): Promise<User | null> {
+    return this.userRepository.findOne({
       where: { id },
       select: ['id', 'password'],
     });
+  }
 
-    if (!user) {
-      throw new NotFoundException(`Пользователь с id ${id} не найден`);
-    }
-
-    const isOldPasswordValid = await bcrypt.compare(dto.oldPassword, user.password);
-    if (!isOldPasswordValid) {
-      throw new BadRequestException('Неверный текущий пароль');
-    }
-
-    const hashedPassword = await bcrypt.hash(dto.newPassword, 10);
+  async updatePassword(id: string, hashedPassword: string): Promise<void> {
     await this.userRepository.update(id, { password: hashedPassword });
-
-    return { message: 'Пароль успешно изменён' };
   }
 
   findOne(id: number) {
