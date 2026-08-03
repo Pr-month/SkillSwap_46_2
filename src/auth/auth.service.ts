@@ -44,6 +44,22 @@ export class AuthService {
     await this.usersService.clearRefreshToken(userId);
   }
 
+  private generateTokens(user: JwtPayload) {
+    const payload = { sub: user.sub, email: user.email, role: user.role };
+
+    const accessToken = this.jwtService.sign(payload, {
+      secret: this.jwtConfiguration.accessSecret,
+      expiresIn: this.jwtConfiguration.accessExpiresIn,
+    });
+
+    const refreshToken = this.jwtService.sign(payload, {
+      secret: this.jwtConfiguration.refreshSecret,
+      expiresIn: this.jwtConfiguration.refreshExpiresIn,
+    });
+
+    return { accessToken, refreshToken };
+  }
+
   async refreshFromPayload(userPayload: JwtPayload) {
     const user = await this.usersService.findById(userPayload.sub);
 
@@ -51,21 +67,11 @@ export class AuthService {
       throw new UnauthorizedException('Пользователь не найден');
     }
 
-    const accessToken = this.jwtService.sign(
-      { sub: user.id, email: user.email, role: user.role },
-      {
-        secret: this.jwtConfiguration.accessSecret,
-        expiresIn: this.jwtConfiguration.accessExpiresIn,
-      },
-    );
-
-    const newRefreshToken = this.jwtService.sign(
-      { sub: user.id, email: user.email, role: user.role },
-      {
-        secret: this.jwtConfiguration.refreshSecret,
-        expiresIn: this.jwtConfiguration.refreshExpiresIn,
-      },
-    );
+    const { accessToken, refreshToken: newRefreshToken } = this.generateTokens({
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+    });
 
     await this.usersService.updateRefreshToken(user.id, newRefreshToken);
 
