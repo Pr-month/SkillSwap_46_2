@@ -28,14 +28,6 @@ export class UsersService {
     return `This action returns all users`;
   }
 
-  async findById(id: string): Promise<User> {
-    const user = await this.userRepository.findOne({ where: { id } });
-    if (!user) {
-      throw new NotFoundException(`Пользователь с id ${id} не найден`);
-    }
-    return user;
-  }
-
   async changePassword(
     id: string,
     dto: ChangePasswordDto,
