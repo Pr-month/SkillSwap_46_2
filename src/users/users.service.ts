@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
@@ -32,7 +36,10 @@ export class UsersService {
     return user;
   }
 
-  async changePassword(id: string, dto: ChangePasswordDto): Promise<{ message: string }> {
+  async changePassword(
+    id: string,
+    dto: ChangePasswordDto,
+  ): Promise<{ message: string }> {
     const user = await this.userRepository.findOne({
       where: { id },
       select: ['id', 'password'],
@@ -42,7 +49,16 @@ export class UsersService {
       throw new NotFoundException(`Пользователь с id ${id} не найден`);
     }
 
-    const isOldPasswordValid = await bcrypt.compare(dto.oldPassword, user.password);
+    if (dto.oldPassword === dto.newPassword) {
+      throw new BadRequestException(
+        'Новый пароль должен отличаться от текущего',
+      );
+    }
+
+    const isOldPasswordValid = await bcrypt.compare(
+      dto.oldPassword,
+      user.password,
+    );
     if (!isOldPasswordValid) {
       throw new BadRequestException('Неверный текущий пароль');
     }
