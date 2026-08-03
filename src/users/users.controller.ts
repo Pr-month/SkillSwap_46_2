@@ -11,7 +11,6 @@ import {
 } from '@nestjs/common';
 import { Request } from 'express';
 import { UsersService } from './users.service';
-import { AuthService } from '../auth/auth.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
@@ -20,10 +19,7 @@ import { JwtPayload } from '../auth/auth.types';
 
 @Controller('users')
 export class UsersController {
-  constructor(
-    private readonly usersService: UsersService,
-    private readonly authService: AuthService,
-  ) {}
+  constructor(private readonly usersService: UsersService) {}
 
   @Post()
   create(@Body() createUserDto: CreateUserDto) {
@@ -46,7 +42,7 @@ export class UsersController {
   @UseGuards(AccessTokenGuard)
   changePassword(@Req() req: Request, @Body() dto: ChangePasswordDto) {
     const user = req.user as JwtPayload;
-    return this.authService.changePassword(user.sub, dto);
+    return this.usersService.changePassword(user.sub, dto);
   }
 
   @Get(':id')
