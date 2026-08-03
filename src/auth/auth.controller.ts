@@ -15,9 +15,9 @@ import {
 import { AuthService } from './auth.service';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { AccessTokenGuard } from './guards/accessToken.guard';
-import { JwtPayload } from './auth.types';
+import { JwtPayload, RequestWithUser } from './auth.types';
 
 @Controller('auth')
 export class AuthController {
@@ -30,7 +30,7 @@ export class AuthController {
 
   @Post('refresh')
   @UseGuards(AccessTokenGuard)
-  async refresh(@Req() req: Request, @Res() res: Response) {
+  async refresh(@Req() req: RequestWithUser, @Res() res: Response) {
     const user = req.user as JwtPayload | undefined;
 
     if (!user?.sub) {
@@ -48,13 +48,8 @@ export class AuthController {
 
   @Post('logout')
   @UseGuards(AccessTokenGuard)
-  async logout(@Req() req: Request, @Res() res: Response) {
-    const user = req.user as JwtPayload | undefined;
-
-    if (!user?.sub) {
-      throw new UnauthorizedException('Пользователь не авторизован');
-    }
-
+  async logout(@Req() req: RequestWithUser, @Res() res: Response) {
+    const user = req.user;
     await this.authService.deleteRefreshToken(user.sub);
     res.clearCookie('refreshToken');
     return res.status(HttpStatus.OK).json({ message: 'Выход выполнен успешно' });
