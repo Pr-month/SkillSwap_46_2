@@ -1,6 +1,7 @@
 import { Exclude } from 'class-transformer';
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 import { Role } from '../../shared/enums/role.enum';
+import { Gender } from '../../shared/enums/gender.enum';
 
 @Entity('users')
 export class User {
@@ -18,18 +19,18 @@ export class User {
   about: string;
 
   @Column('date', { nullable: true })
-  birthdate: string;
+  birthdate: Date;
 
   @Column({ length: 100, nullable: true })
   city: string;
 
-  @Column({ length: 30, nullable: true })
-  gender: string;
+  @Column({ type: 'enum', enum: Gender, nullable: true })
+  gender: Gender;
 
   @Column({ length: 255, nullable: true })
   avatar: string;
 
-  @Column({ default: Role.USER })
+  @Column({ type: 'enum', enum: Role, default: Role.USER })
   role: Role;
 
   @Exclude()
