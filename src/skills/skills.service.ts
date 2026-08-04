@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Skill } from './entities/skill.entity';
@@ -25,10 +25,18 @@ export class SkillsService {
       .where('LOWER(skill.title) LIKE LOWER(:search)', {
         search: `%${search}%`,
       })
+      .orderBy('skill.createdAt', 'DESC')
       .skip((page - 1) * limit)
       .take(limit);
 
     const [data, total] = await query.getManyAndCount();
+    const totalPages = Math.ceil(total / limit);
+
+    if ( totalPages > 0 && page > totalPages ) {
+      throw new NotFoundException(
+        `Запрашиваемая страница ${page} не найдена.`,
+      );
+    }
 
     return {
       data,
