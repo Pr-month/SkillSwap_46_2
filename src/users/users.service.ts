@@ -73,10 +73,17 @@ export class UsersService {
     return `This action returns a #${id} user`;
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    void updateUserDto;
+  async update(id: string, dto: UpdateUserDto): Promise<User> {
+    const user = await this.userRepository.findOne({ where: { id } });
 
-    return `This action updates a #${id} user`;
+    if (!user) {
+      throw new NotFoundException(`Пользователь с id ${id} не найден`);
+    }
+
+    this.userRepository.merge(user, dto);
+    await this.userRepository.save(user);
+
+    return user;
   }
 
   remove(id: number) {
