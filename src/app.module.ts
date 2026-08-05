@@ -9,6 +9,7 @@ import { jwtConfig } from './config/jwt.config';
 import { dbConfig, TDbConfig } from './config/db.config';
 import { UsersModule } from './users/users.module';
 import { SkillsModule } from './skills/skills.module';
+import { FilesModule } from './files/files.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { SkillsModule } from './skills/skills.module';
     UsersModule,
     AuthModule,
     SkillsModule,
+    FilesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
