@@ -14,8 +14,6 @@ export class SkillsService {
   ) {}
 
   create(createSkillDto: CreateSkillDto) {
-    void createSkillDto;
-
     return 'This action adds a new skill';
   }
 
@@ -52,8 +50,6 @@ export class SkillsService {
   }
 
   update(id: number, updateSkillDto: UpdateSkillDto) {
-    void updateSkillDto;
-
     return `This action updates a #${id} skill`;
   }
 
