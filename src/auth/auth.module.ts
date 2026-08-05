@@ -9,10 +9,12 @@ import { RefreshTokenGuard } from './guards/refreshToken.guard';
 import { AccessTokenStrategy } from './strategies/accessToken.strategy';
 import { RefreshTokenStrategy } from './strategies/refreshToken.strategy';
 import { jwtConfig } from '../config/jwt.config';
+import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
     PassportModule,
+    UsersModule,
     JwtModule.registerAsync({
       inject: [jwtConfig.KEY],
       useFactory: (config: ConfigType<typeof jwtConfig>) => ({
