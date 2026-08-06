@@ -1,26 +1,106 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { IsNull, Repository } from 'typeorm';
+import { Category } from './entities/category.entity';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 
 @Injectable()
 export class CategoriesService {
-  create(createCategoryDto: CreateCategoryDto) {
-    return 'This action adds a new category';
+  constructor(
+    @InjectRepository(Category)
+    private readonly categoriesRepository: Repository<Category>,
+  ) {}
+
+  /**
+   * Возвращает список основных категорий с их подкатегориями (children).
+   */
+  async findAll(): Promise<Category[]> {
+    return this.categoriesRepository.find({
+      where: { parent: IsNull() },
+      relations: { children: true },
+      order: { name: 'ASC' },
+    });
   }
 
-  findAll() {
-    return `This action returns all categories`;
+  async findOne(id: string): Promise<Category> {
+    const category = await this.categoriesRepository.findOne({
+      where: { id },
+      relations: { parent: true, children: true },
+    });
+
+    if (!category) {
+      throw new NotFoundException(`Категория с id "${id}" не найдена`);
+    }
+
+    return category;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} category`;
+  async create(dto: CreateCategoryDto): Promise<Category> {
+    let parent: Category | null = null;
+
+    if (dto.parentId) {
+      parent = await this.categoriesRepository.findOne({
+        where: { id: dto.parentId },
+      });
+
+      if (!parent) {
+        throw new BadRequestException(
+          `Родительская категория с id "${dto.parentId}" не найдена`,
+        );
+      }
+    }
+
+    const category = this.categoriesRepository.create({
+      name: dto.name,
+      parent,
+    });
+
+    return this.categoriesRepository.save(category);
   }
 
-  update(id: number, updateCategoryDto: UpdateCategoryDto) {
-    return `This action updates a #${id} category`;
+  async update(id: string, dto: UpdateCategoryDto): Promise<Category> {
+    const category = await this.findOne(id);
+
+    if (dto.name !== undefined) {
+      category.name = dto.name;
+    }
+
+    if (dto.parentId !== undefined) {
+      if (dto.parentId === id) {
+        throw new BadRequestException(
+          'Категория не может быть родителем самой себя',
+        );
+      }
+
+      category.parent = dto.parentId
+        ? await this.getParent(dto.parentId)
+        : null;
+    }
+
+    return this.categoriesRepository.save(category);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} category`;
+  async remove(id: string): Promise<void> {
+    await this.findOne(id);
+    await this.categoriesRepository.delete(id);
+  }
+
+  private async getParent(parentId: string): Promise<Category> {
+    const parent = await this.categoriesRepository.findOne({
+      where: { id: parentId },
+    });
+
+    if (!parent) {
+      throw new BadRequestException(
+        `Родительская категория с id "${parentId}" не найдена`,
+      );
+    }
+
+    return parent;
   }
 }
