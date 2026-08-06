@@ -79,6 +79,13 @@ export class UsersService {
     return this.userRepository.findOne({ where: { id } });
   }
 
+  async findByIdWithRefreshToken(id: string): Promise<User | null> {
+    return this.userRepository.findOne({
+      where: { id },
+      select: ['id', 'email', 'role', 'refreshToken'],
+    });
+  }
+
   async updateRefreshToken(
     userId: string,
     refreshToken: string,
