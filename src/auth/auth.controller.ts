@@ -20,7 +20,7 @@ import { AccessTokenGuard } from './guards/accessToken.guard';
 import { RolesGuard } from './guards/roles.guard';
 import { JwtPayload, RequestWithUser } from './auth.types';
 import { Roles } from './decorators/roles.decorator';
-import { Role } from 'src/shared/enums/role.enum';
+import { Role } from '../shared/enums/role.enum';
 import { RefreshTokenGuard } from './guards/refreshToken.guard';
 
 @Controller('auth')
