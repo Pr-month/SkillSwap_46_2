@@ -10,3 +10,7 @@ export type JwtPayload = {
 export type RequestWithUser = Request & {
   user: JwtPayload;
 };
+
+export type RequestWithRefreshToken = Request & {
+  user: JwtPayload & { refreshToken: string };
+};
