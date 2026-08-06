@@ -1,9 +1,12 @@
 import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import * as bcrypt from 'bcrypt';
 import { jwtConfig } from '../config/jwt.config';
 import { UsersService } from '../users/users.service';
-import { JwtPayload } from './auth.types';
+import { User } from '../users/entities/user.entity';
+import { LoginDto } from './dto/login.dto';
+import { AuthResult, JwtPayload } from './auth.types';
 
 @Injectable()
 export class AuthService {
@@ -16,6 +19,27 @@ export class AuthService {
 
   async deleteRefreshToken(userId: string): Promise<void> {
     await this.usersService.clearRefreshToken(userId);
+  }
+
+  async login(loginDto: LoginDto): Promise<AuthResult> {
+    const user = await this.usersService.findByEmailWithPassword(
+      loginDto.email,
+    );
+
+    if (!user) {
+      throw new UnauthorizedException('Неверный email или пароль');
+    }
+
+    const isPasswordValid = await bcrypt.compare(
+      loginDto.password,
+      user.password,
+    );
+
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Неверный email или пароль');
+    }
+
+    return this.issueTokens(user);
   }
 
   private generateTokens(user: JwtPayload) {
@@ -34,20 +58,14 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
-  async refreshFromPayload(userPayload: JwtPayload) {
-    const user = await this.usersService.findById(userPayload.sub);
-
-    if (!user) {
-      throw new UnauthorizedException('Пользователь не найден');
-    }
-
-    const { accessToken, refreshToken: newRefreshToken } = this.generateTokens({
+  private async issueTokens(user: User): Promise<AuthResult> {
+    const { accessToken, refreshToken } = this.generateTokens({
       sub: user.id,
       email: user.email,
       role: user.role,
     });
 
-    await this.usersService.updateRefreshToken(user.id, newRefreshToken);
+    await this.usersService.updateRefreshToken(user.id, refreshToken);
 
     return {
       user: {
@@ -56,7 +74,17 @@ export class AuthService {
         role: user.role,
       },
       accessToken,
-      refreshToken: newRefreshToken,
+      refreshToken,
     };
+  }
+
+  async refreshFromPayload(userPayload: JwtPayload): Promise<AuthResult> {
+    const user = await this.usersService.findById(userPayload.sub);
+
+    if (!user) {
+      throw new UnauthorizedException('Пользователь не найден');
+    }
+
+    return this.issueTokens(user);
   }
 }

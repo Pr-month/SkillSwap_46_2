@@ -1,5 +1,7 @@
 import {
+  Body,
   Controller,
+  HttpCode,
   Post,
   Req,
   Res,
@@ -11,7 +13,8 @@ import { AuthService } from './auth.service';
 import { Response } from 'express';
 import { AccessTokenGuard } from './guards/accessToken.guard';
 import { RolesGuard } from './guards/roles.guard';
-import { JwtPayload, RequestWithUser } from './auth.types';
+import { AuthResult, JwtPayload, RequestWithUser } from './auth.types';
+import { LoginDto } from './dto/login.dto';
 import { Roles } from './decorators/roles.decorator';
 import { Role } from '../shared/enums/role.enum';
 import { RefreshTokenGuard } from './guards/refreshToken.guard';
@@ -19,6 +22,23 @@ import { RefreshTokenGuard } from './guards/refreshToken.guard';
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
+
+  @Post('login')
+  @HttpCode(HttpStatus.OK)
+  async login(
+    @Body() loginDto: LoginDto,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<AuthResult> {
+    const result = await this.authService.login(loginDto);
+
+    res.cookie('accessToken', result.accessToken, {
+      httpOnly: true,
+      sameSite: 'lax',
+    });
+
+    return result;
+  }
+
   @Post('refresh')
   @UseGuards(RefreshTokenGuard, RolesGuard)
   @Roles([Role.ADMIN, Role.USER])

@@ -10,3 +10,15 @@ export type JwtPayload = {
 export type RequestWithUser = Request & {
   user: JwtPayload;
 };
+
+export type AuthUser = {
+  id: string;
+  email: string;
+  role: Role;
+};
+
+export type AuthResult = {
+  user: AuthUser;
+  accessToken: string;
+  refreshToken: string;
+};
