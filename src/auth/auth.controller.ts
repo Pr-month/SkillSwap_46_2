@@ -1,11 +1,6 @@
 import {
   Controller,
-  Get,
   Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
   Req,
   Res,
   UseGuards,
@@ -50,6 +45,8 @@ export class AuthController {
     const user = req.user;
     await this.authService.deleteRefreshToken(user.sub);
     res.clearCookie('refreshToken');
-    return res.status(HttpStatus.OK).json({ message: 'Выход выполнен успешно' });
+    return res
+      .status(HttpStatus.OK)
+      .json({ message: 'Выход выполнен успешно' });
   }
 }

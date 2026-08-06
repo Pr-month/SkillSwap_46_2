@@ -32,10 +32,8 @@ export class SkillsService {
     const [data, total] = await query.getManyAndCount();
     const totalPages = Math.ceil(total / limit);
 
-    if ( totalPages > 0 && page > totalPages ) {
-      throw new NotFoundException(
-        `Запрашиваемая страница ${page} не найдена.`,
-      );
+    if (totalPages > 0 && page > totalPages) {
+      throw new NotFoundException(`Запрашиваемая страница ${page} не найдена.`);
     }
 
     return {
