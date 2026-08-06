@@ -1,11 +1,15 @@
+import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
+import type { ConfigType } from '@nestjs/config';
 import { NestFactory, Reflector } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
 import { AllExceptionFilter } from './common/filters/all-exception.filter';
 import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  const applicationConfiguration = app.get<
+    ConfigType<typeof appConfig>
+  >(appConfig.KEY);
 
   app.use(cookieParser());
   app.useGlobalFilters(new AllExceptionFilter());
@@ -22,7 +26,7 @@ async function bootstrap() {
     }),
   );
 
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(applicationConfiguration.port);
 }
 
 void bootstrap();
