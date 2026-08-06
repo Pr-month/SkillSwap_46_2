@@ -31,6 +31,20 @@ export class AuthController {
   ): Promise<AuthResult> {
     const result = await this.authService.login(loginDto);
 
+    // TODO: вернуться сюда и оставить только куку, как требует ТЗ
+    // («если авторизация успешна, то отправляем jwt токен через куки»).
+    // Сейчас токены дублируются в теле ответа вынужденно, по двум причинам:
+    //   1) AccessTokenStrategy читает токен только из заголовка Authorization: Bearer
+    //      (ExtractJwt.fromAuthHeaderAsBearerToken), а HttpOnly-куку фронтенд прочитать
+    //      не может — без тела ответа залогиненный клиент не попадёт ни на один
+    //      защищённый роут;
+    //   2) POST /auth/refresh уже отдаёт refreshToken в теле, и второй, несовместимый
+    //      контракт в рамках одного контроллера только запутал бы клиента
+    //      (там же лежит баг: @Res() без passthrough, ответ вообще не отправляется).
+    // Что сделать, когда refresh починят: добавить в AccessTokenStrategy
+    // ExtractJwt.fromExtractors([cookieExtractor, ...]) и cookie-parser в main.ts,
+    // положить refreshToken в отдельную HttpOnly-куку, после чего убрать оба токена
+    // из AuthResult и вернуть из этого метода только { user }.
     res.cookie('accessToken', result.accessToken, {
       httpOnly: true,
       sameSite: 'lax',
