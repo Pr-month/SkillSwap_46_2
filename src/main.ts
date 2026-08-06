@@ -4,6 +4,7 @@ import { NestFactory, Reflector } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { AllExceptionFilter } from './common/filters/all-exception.filter';
 import * as cookieParser from 'cookie-parser';
+import { appConfig } from './config/app.config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
