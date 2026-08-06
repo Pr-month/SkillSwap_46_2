@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Controller,
   Post,
+  UnsupportedMediaTypeException,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -15,6 +16,7 @@ import { FilesService } from './files.service';
 import { AccessTokenGuard } from '../auth/guards/accessToken.guard';
 
 const UPLOADS_DIR = './public/uploads';
+const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
 
 if (!existsSync(UPLOADS_DIR)) {
   mkdirSync(UPLOADS_DIR, { recursive: true });
@@ -36,6 +38,15 @@ export class FilesController {
         },
       }),
       limits: { fileSize: 2 * 1024 * 1024 },
+      fileFilter: (_req, file, callback) => {
+        if ( !ALLOWED_MIME_TYPES.includes(file.mimetype) ) {
+          return callback(
+            new UnsupportedMediaTypeException(
+              'Разрешены только изображения (jpeg, png, webp, gif)'
+            ), false);
+        }
+        callback(null, true);
+      },
     }),
   )
   uploadFile(@UploadedFile() file: Express.Multer.File) {
