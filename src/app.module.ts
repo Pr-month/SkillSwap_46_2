@@ -10,6 +10,7 @@ import { dbConfig, TDbConfig } from './config/db.config';
 import { UsersModule } from './users/users.module';
 import { SkillsModule } from './skills/skills.module';
 import { CategoriesModule } from './categories/categories.module';
+import { FilesModule } from './files/files.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { CategoriesModule } from './categories/categories.module';
     AuthModule,
     SkillsModule,
     CategoriesModule,
+    FilesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

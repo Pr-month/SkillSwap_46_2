@@ -11,7 +11,7 @@ import { AuthService } from './auth.service';
 import { Response } from 'express';
 import { AccessTokenGuard } from './guards/accessToken.guard';
 import { RolesGuard } from './guards/roles.guard';
-import { JwtPayload, RequestWithUser } from './auth.types';
+import { JwtPayload, RequestWithRefreshToken, RequestWithUser } from './auth.types';
 import { Roles } from './decorators/roles.decorator';
 import { Role } from '../shared/enums/role.enum';
 import { RefreshTokenGuard } from './guards/refreshToken.guard';
@@ -19,23 +19,22 @@ import { RefreshTokenGuard } from './guards/refreshToken.guard';
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
+
   @Post('refresh')
   @UseGuards(RefreshTokenGuard, RolesGuard)
   @Roles([Role.ADMIN, Role.USER])
-  async refresh(@Req() req: RequestWithUser, @Res() res: Response) {
+  async refresh(@Req() req: RequestWithRefreshToken, @Res() res: Response) {
     const user = req.user as JwtPayload | undefined;
 
     if (!user?.sub) {
       throw new UnauthorizedException('Пользователь не авторизован');
     }
 
-    const result = await this.authService.refreshFromPayload(user);
+    const result = await this.authService.refreshFromPayload(req);
 
     res.cookie('accessToken', result.accessToken);
+    res.cookie('refreshToken', result.refreshToken);
 
-    return {
-      refreshToken: result.refreshToken,
-    };
   }
 
   @Post('logout')
