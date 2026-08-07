@@ -3,7 +3,7 @@ import { ConfigType } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { jwtConfig } from '../config/jwt.config';
 import { UsersService } from '../users/users.service';
-import { JwtPayload } from './auth.types';
+import { JwtPayload, RequestWithRefreshToken } from './auth.types';
 
 @Injectable()
 export class AuthService {
@@ -34,11 +34,15 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
-  async refreshFromPayload(userPayload: JwtPayload) {
-    const user = await this.usersService.findById(userPayload.sub);
+  async refreshFromPayload(userPayload: RequestWithRefreshToken) {
+    const user = await this.usersService.findByIdWithRefreshToken(userPayload.user.sub);
 
     if (!user) {
       throw new UnauthorizedException('Пользователь не найден');
+    }
+
+    if (userPayload.user.refreshToken !== user.refreshToken) {
+      throw new UnauthorizedException('Неверный refreshToken');
     }
 
     const { accessToken, refreshToken: newRefreshToken } = this.generateTokens({

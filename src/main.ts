@@ -3,6 +3,7 @@ import type { ConfigType } from '@nestjs/config';
 import { NestFactory, Reflector } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { AllExceptionFilter } from './common/filters/all-exception.filter';
+import * as cookieParser from 'cookie-parser';
 import { appConfig } from './config/app.config';
 
 async function bootstrap() {
@@ -11,6 +12,7 @@ async function bootstrap() {
     ConfigType<typeof appConfig>
   >(appConfig.KEY);
 
+  app.use(cookieParser());
   app.useGlobalFilters(new AllExceptionFilter());
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
   app.useGlobalPipes(
