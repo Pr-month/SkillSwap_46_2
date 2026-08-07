@@ -39,6 +39,6 @@ export class SkillsController {
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.skillsService.remove(+id);
+    return this.skillsService.remove(id);
   }
 }

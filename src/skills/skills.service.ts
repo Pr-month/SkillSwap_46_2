@@ -55,7 +55,12 @@ export class SkillsService {
     return `This action updates a #${id} skill`;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} skill`;
+  async remove(id: string): Promise<{ message: string }> {
+    const result = await this.skillsRepository.delete(id);
+
+    if (result.affected === 0) {
+      throw new NotFoundException(`Навык с id ${id} не найден`);
+    }
+    return { message: 'Навык успешно удален' };
   }
 }
