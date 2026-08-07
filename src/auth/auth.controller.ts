@@ -52,7 +52,9 @@ export class AuthController {
     const user = req.user;
     await this.authService.deleteRefreshToken(user.sub);
     res.clearCookie('refreshToken');
-    return res.status(HttpStatus.OK).json({ message: 'Выход выполнен успешно' });
+    return res
+      .status(HttpStatus.OK)
+      .json({ message: 'Выход выполнен успешно' });
   }
 
   @Get()

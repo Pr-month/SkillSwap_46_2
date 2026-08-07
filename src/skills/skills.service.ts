@@ -5,6 +5,7 @@ import { Skill } from './entities/skill.entity';
 import { FindSkillsDto } from './dto/find-skills.dto';
 import { CreateSkillDto } from './dto/create-skill.dto';
 import { UpdateSkillDto } from './dto/update-skill.dto';
+import { User } from 'src/users/entities/user.entity';
 
 @Injectable()
 export class SkillsService {
@@ -13,8 +14,12 @@ export class SkillsService {
     private readonly skillsRepository: Repository<Skill>,
   ) {}
 
-  create(createSkillDto: CreateSkillDto) {
-    return 'This action adds a new skill';
+  create(ownerId: string, createSkillDto: CreateSkillDto) {
+    const skill = this.skillsRepository.create({
+      ...createSkillDto,
+      user: { id: ownerId } as User,
+    });
+    return this.skillsRepository.save(skill);
   }
 
   async findAll(dto: FindSkillsDto) {
@@ -32,10 +37,8 @@ export class SkillsService {
     const [data, total] = await query.getManyAndCount();
     const totalPages = Math.ceil(total / limit);
 
-    if ( totalPages > 0 && page > totalPages ) {
-      throw new NotFoundException(
-        `Запрашиваемая страница ${page} не найдена.`,
-      );
+    if (totalPages > 0 && page > totalPages) {
+      throw new NotFoundException(`Запрашиваемая страница ${page} не найдена.`);
     }
 
     return {

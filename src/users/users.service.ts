@@ -79,7 +79,10 @@ export class UsersService {
     return this.userRepository.findOne({ where: { id } });
   }
 
-  async updateRefreshToken(userId: string, refreshToken: string): Promise<void> {
+  async updateRefreshToken(
+    userId: string,
+    refreshToken: string,
+  ): Promise<void> {
     await this.userRepository.update(userId, { refreshToken });
   }
 
