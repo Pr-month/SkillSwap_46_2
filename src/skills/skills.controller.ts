@@ -34,7 +34,7 @@ export class SkillsController {
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateSkillDto: UpdateSkillDto) {
-    return this.skillsService.update(+id, updateSkillDto);
+    return this.skillsService.update(id, updateSkillDto);
   }
 
   @Delete(':id')

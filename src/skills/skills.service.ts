@@ -49,10 +49,17 @@ export class SkillsService {
     return `This action returns a #${id} skill`;
   }
 
-  update(id: number, updateSkillDto: UpdateSkillDto) {
-    void updateSkillDto;
+  async update(id: string, updateSkillDto: UpdateSkillDto) {
+    const skill = await this.skillsRepository.preload({
+      id,
+      ...updateSkillDto,
+    });
 
-    return `This action updates a #${id} skill`;
+    if (!skill) {
+      throw new NotFoundException(`Навый с id ${id} не найден`);
+    }
+
+    return this.skillsRepository.save(skill);
   }
 
   remove(id: number) {
