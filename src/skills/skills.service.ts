@@ -1,4 +1,8 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Skill } from './entities/skill.entity';
@@ -61,8 +65,13 @@ export class SkillsService {
     return `This action removes a #${id} skill`;
   }
 
-  async addToFavorites(skillId: string, userId: string): Promise<{ message: string }> {
-    const skill = await this.skillsRepository.findOne({ where: { id: skillId } });
+  async addToFavorites(
+    skillId: string,
+    userId: string,
+  ): Promise<{ message: string }> {
+    const skill = await this.skillsRepository.findOne({
+      where: { id: skillId },
+    });
     if (!skill) {
       throw new NotFoundException(`Навык с id "${skillId}" не найден`);
     }
@@ -72,7 +81,9 @@ export class SkillsService {
       throw new NotFoundException('Пользователь не найден');
     }
 
-    const alreadyInFavorites = user.favoriteSkills.some((s) => s.id === skillId);
+    const alreadyInFavorites = user.favoriteSkills.some(
+      (s) => s.id === skillId,
+    );
     if (alreadyInFavorites) {
       throw new ConflictException('Навык уже добавлен в избранное');
     }
@@ -83,7 +94,10 @@ export class SkillsService {
     return { message: 'Навык добавлен в избранное' };
   }
 
-  async removeFromFavorites(skillId: string, userId: string): Promise<{ message: string }> {
+  async removeFromFavorites(
+    skillId: string,
+    userId: string,
+  ): Promise<{ message: string }> {
     const user = await this.usersService.findByIdWithFavorites(userId);
     if (!user) {
       throw new NotFoundException('Пользователь не найден');

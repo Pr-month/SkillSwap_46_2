@@ -13,7 +13,12 @@ import { AuthService } from './auth.service';
 import { Response } from 'express';
 import { AccessTokenGuard } from './guards/accessToken.guard';
 import { RolesGuard } from './guards/roles.guard';
-import { AuthResult, JwtPayload, RequestWithUser } from './auth.types';
+import {
+  AuthResult,
+  JwtPayload,
+  RequestWithRefreshToken,
+  RequestWithUser,
+} from './auth.types';
 import { LoginDto } from './dto/login.dto';
 import { Roles } from './decorators/roles.decorator';
 import { Role } from '../shared/enums/role.enum';
@@ -67,7 +72,6 @@ export class AuthController {
 
     res.cookie('accessToken', result.accessToken);
     res.cookie('refreshToken', result.refreshToken);
-
   }
 
   @Post('logout')

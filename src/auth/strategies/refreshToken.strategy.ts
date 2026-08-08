@@ -24,9 +24,9 @@ export class RefreshTokenStrategy extends PassportStrategy(
   }
 
   validate(req: Request, payload: JwtPayload) {
-  return {
-    ...payload,
-    refreshToken: req.cookies?.refreshToken ?? null,
-  };
-}
+    return {
+      ...payload,
+      refreshToken: req.cookies?.refreshToken ?? null,
+    };
+  }
 }

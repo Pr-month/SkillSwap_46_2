@@ -6,7 +6,7 @@ import { jwtConfig } from '../config/jwt.config';
 import { UsersService } from '../users/users.service';
 import { User } from '../users/entities/user.entity';
 import { LoginDto } from './dto/login.dto';
-import { AuthResult, JwtPayload } from './auth.types';
+import { AuthResult, JwtPayload, RequestWithRefreshToken } from './auth.types';
 
 @Injectable()
 export class AuthService {
@@ -60,18 +60,6 @@ export class AuthService {
 
   private async issueTokens(user: User): Promise<AuthResult> {
     const { accessToken, refreshToken } = this.generateTokens({
-  async refreshFromPayload(userPayload: RequestWithRefreshToken) {
-    const user = await this.usersService.findByIdWithRefreshToken(userPayload.user.sub);
-
-    if (!user) {
-      throw new UnauthorizedException('Пользователь не найден');
-    }
-
-    if (userPayload.user.refreshToken !== user.refreshToken) {
-      throw new UnauthorizedException('Неверный refreshToken');
-    }
-
-    const { accessToken, refreshToken: newRefreshToken } = this.generateTokens({
       sub: user.id,
       email: user.email,
       role: user.role,
@@ -90,11 +78,19 @@ export class AuthService {
     };
   }
 
-  async refreshFromPayload(userPayload: JwtPayload): Promise<AuthResult> {
-    const user = await this.usersService.findById(userPayload.sub);
+  async refreshFromPayload(
+    userPayload: RequestWithRefreshToken,
+  ): Promise<AuthResult> {
+    const user = await this.usersService.findByIdWithRefreshToken(
+      userPayload.user.sub,
+    );
 
     if (!user) {
       throw new UnauthorizedException('Пользователь не найден');
+    }
+
+    if (userPayload.user.refreshToken !== user.refreshToken) {
+      throw new UnauthorizedException('Неверный refreshToken');
     }
 
     return this.issueTokens(user);

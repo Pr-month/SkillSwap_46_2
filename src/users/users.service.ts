@@ -83,6 +83,9 @@ export class UsersService {
     return this.userRepository.findOne({
       where: { email },
       select: ['id', 'email', 'password', 'role'],
+    });
+  }
+
   async findByIdWithRefreshToken(id: string): Promise<User | null> {
     return this.userRepository.findOne({
       where: { id },
@@ -104,7 +107,7 @@ export class UsersService {
   async findByIdWithFavorites(id: string): Promise<User | null> {
     return this.userRepository.findOne({
       where: { id },
-      relations: { favoriteSkills: true }
+      relations: { favoriteSkills: true },
     });
   }
 
