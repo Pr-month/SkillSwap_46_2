@@ -1,5 +1,6 @@
 import {
   Column,
+  CreateDateColumn,
   Entity,
   ManyToOne,
   JoinColumn,
@@ -24,5 +25,9 @@ export class Skill {
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'owner_id' })
   user: User;
+
+  @CreateDateColumn({ name: 'created_at' })
+  createdAt: Date;
+
   // TODO: добавить связь с Categories, когда появится ресурс categories
 }

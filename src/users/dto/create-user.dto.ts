@@ -5,6 +5,7 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
+  Matches,
   MinLength,
 } from 'class-validator';
 import { Gender } from 'src/shared/enums/gender.enum';
@@ -15,7 +16,9 @@ export class CreateUserDto {
 
   @IsNotEmpty()
   @MinLength(6)
-  // @Matches('^(?=.*[A-Za-z])(?=.*\d)(?=.*[!"#$%&'()*+,\-./:;<=>?@[\]^_`{|}~])[\S]+$')
+  @Matches(
+    /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!"#$%&'()*+,\-./:;<=>?@[\]^_`{|}~])[\S]+$/,
+  )
   password: string;
 
   @IsOptional()
