@@ -22,3 +22,6 @@ export type AuthResult = {
   accessToken: string;
   refreshToken: string;
 };
+export type RequestWithRefreshToken = Request & {
+  user: JwtPayload & { refreshToken: string };
+};

@@ -60,6 +60,18 @@ export class AuthService {
 
   private async issueTokens(user: User): Promise<AuthResult> {
     const { accessToken, refreshToken } = this.generateTokens({
+  async refreshFromPayload(userPayload: RequestWithRefreshToken) {
+    const user = await this.usersService.findByIdWithRefreshToken(userPayload.user.sub);
+
+    if (!user) {
+      throw new UnauthorizedException('Пользователь не найден');
+    }
+
+    if (userPayload.user.refreshToken !== user.refreshToken) {
+      throw new UnauthorizedException('Неверный refreshToken');
+    }
+
+    const { accessToken, refreshToken: newRefreshToken } = this.generateTokens({
       sub: user.id,
       email: user.email,
       role: user.role,

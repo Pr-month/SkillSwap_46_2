@@ -56,20 +56,18 @@ export class AuthController {
   @Post('refresh')
   @UseGuards(RefreshTokenGuard, RolesGuard)
   @Roles([Role.ADMIN, Role.USER])
-  async refresh(@Req() req: RequestWithUser, @Res() res: Response) {
+  async refresh(@Req() req: RequestWithRefreshToken, @Res() res: Response) {
     const user = req.user as JwtPayload | undefined;
 
     if (!user?.sub) {
       throw new UnauthorizedException('Пользователь не авторизован');
     }
 
-    const result = await this.authService.refreshFromPayload(user);
+    const result = await this.authService.refreshFromPayload(req);
 
     res.cookie('accessToken', result.accessToken);
+    res.cookie('refreshToken', result.refreshToken);
 
-    return {
-      refreshToken: result.refreshToken,
-    };
   }
 
   @Post('logout')
