@@ -1,5 +1,7 @@
 import {
+  Body,
   Controller,
+  HttpCode,
   Post,
   Req,
   Res,
@@ -11,7 +13,8 @@ import { AuthService } from './auth.service';
 import { Response } from 'express';
 import { AccessTokenGuard } from './guards/accessToken.guard';
 import { RolesGuard } from './guards/roles.guard';
-import { JwtPayload, RequestWithRefreshToken, RequestWithUser } from './auth.types';
+import { AuthResult, JwtPayload, RequestWithUser } from './auth.types';
+import { LoginDto } from './dto/login.dto';
 import { Roles } from './decorators/roles.decorator';
 import { Role } from '../shared/enums/role.enum';
 import { RefreshTokenGuard } from './guards/refreshToken.guard';
@@ -19,6 +22,36 @@ import { RefreshTokenGuard } from './guards/refreshToken.guard';
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
+
+  @Post('login')
+  @HttpCode(HttpStatus.OK)
+  async login(
+    @Body() loginDto: LoginDto,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<AuthResult> {
+    const result = await this.authService.login(loginDto);
+
+    // TODO: вернуться сюда и оставить только куку, как требует ТЗ
+    // («если авторизация успешна, то отправляем jwt токен через куки»).
+    // Сейчас токены дублируются в теле ответа вынужденно, по двум причинам:
+    //   1) AccessTokenStrategy читает токен только из заголовка Authorization: Bearer
+    //      (ExtractJwt.fromAuthHeaderAsBearerToken), а HttpOnly-куку фронтенд прочитать
+    //      не может — без тела ответа залогиненный клиент не попадёт ни на один
+    //      защищённый роут;
+    //   2) POST /auth/refresh уже отдаёт refreshToken в теле, и второй, несовместимый
+    //      контракт в рамках одного контроллера только запутал бы клиента
+    //      (там же лежит баг: @Res() без passthrough, ответ вообще не отправляется).
+    // Что сделать, когда refresh починят: добавить в AccessTokenStrategy
+    // ExtractJwt.fromExtractors([cookieExtractor, ...]) и cookie-parser в main.ts,
+    // положить refreshToken в отдельную HttpOnly-куку, после чего убрать оба токена
+    // из AuthResult и вернуть из этого метода только { user }.
+    res.cookie('accessToken', result.accessToken, {
+      httpOnly: true,
+      sameSite: 'lax',
+    });
+
+    return result;
+  }
 
   @Post('refresh')
   @UseGuards(RefreshTokenGuard, RolesGuard)
