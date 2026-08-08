@@ -77,6 +77,12 @@ export class CategoriesService {
         );
       }
 
+      if (dto.parentId && (await this.isDescendant(id, dto.parentId))) {
+        throw new BadRequestException(
+          'Категория не может быть перенесена в собственную подкатегорию',
+        );
+      }
+
       category.parent = dto.parentId
         ? await this.getParent(dto.parentId)
         : null;
@@ -102,5 +108,43 @@ export class CategoriesService {
     }
 
     return parent;
+  }
+
+  /**
+   * Проверяет, является ли категория descendantId потомком (одной из
+   * подкатегорий на любой глубине) категории ancestorId.
+   * Защищает дерево категорий от зацикливания: нельзя сделать категорию
+   * родителем своего же потомка.
+   */
+  private async isDescendant(
+    ancestorId: string,
+    descendantId: string,
+  ): Promise<boolean> {
+    const visited = new Set<string>();
+    let currentId: string | null = descendantId;
+
+    while (currentId) {
+      if (visited.has(currentId)) {
+        return false;
+      }
+      visited.add(currentId);
+
+      if (currentId === ancestorId) {
+        return true;
+      }
+
+      const category = await this.categoriesRepository.findOne({
+        where: { id: currentId },
+        relations: { parent: true },
+      });
+
+      if (!category || !category.parent) {
+        return false;
+      }
+
+      currentId = category.parent.id;
+    }
+
+    return false;
   }
 }
