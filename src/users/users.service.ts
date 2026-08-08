@@ -6,7 +6,6 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { User } from './entities/user.entity';
@@ -17,12 +16,6 @@ export class UsersService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
   ) {}
-
-  create(createUserDto: CreateUserDto) {
-    void createUserDto;
-
-    return 'This action adds a new user';
-  }
 
   findAll() {
     return this.userRepository.find();
