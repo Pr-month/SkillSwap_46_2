@@ -11,6 +11,7 @@ import { UsersModule } from './users/users.module';
 import { SkillsModule } from './skills/skills.module';
 import { CategoriesModule } from './categories/categories.module';
 import { FilesModule } from './files/files.module';
+import { User } from './users/entities/user.entity';
 
 @Module({
   imports: [
@@ -20,7 +21,10 @@ import { FilesModule } from './files/files.module';
     }),
     TypeOrmModule.forRootAsync({
       inject: [dbConfig.KEY],
-      useFactory: (config: TDbConfig) => config,
+      useFactory: (config: TDbConfig)  => ({
+        ...config,
+        entities: [User],
+      }),
     }),
     UsersModule,
     AuthModule,
