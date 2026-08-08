@@ -96,4 +96,15 @@ export class UsersService {
   async clearRefreshToken(userId: string): Promise<void> {
     await this.userRepository.update(userId, { refreshToken: null });
   }
+
+  async findByIdWithFavorites(id: string): Promise<User | null> {
+    return this.userRepository.findOne({
+      where: { id },
+      relations: { favoriteSkills: true }
+    });
+  }
+
+  async saveFavorites(user: User): Promise<void> {
+    await this.userRepository.save(user);
+  }
 }
