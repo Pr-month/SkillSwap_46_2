@@ -2,10 +2,13 @@ import {
   Column,
   Entity,
   JoinColumn,
+  ManyToMany,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { User } from '../../users/entities/user.entity';
+import { Skill } from '../../skills/entities/skill.entity';
 
 @Entity('categories')
 export class Category {
@@ -26,4 +29,10 @@ export class Category {
     cascade: true,
   })
   children: Category[];
+
+  @ManyToMany(() => User, (user) => user.wantToLearn)
+  wantToLearnUsers: User[];
+
+  @OneToMany(() => Skill, (skill) => skill.category)
+  skills: Skill[];
 }
