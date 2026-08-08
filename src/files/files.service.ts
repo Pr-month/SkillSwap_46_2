@@ -4,7 +4,7 @@ import { Injectable } from '@nestjs/common';
 export class FilesService {
   buildFileResponse(file: Express.Multer.File) {
     return {
-    url: `/public/uploads/${file.filename}`,
-  };
-}
+      url: `/public/uploads/${file.filename}`,
+    };
+  }
 }
