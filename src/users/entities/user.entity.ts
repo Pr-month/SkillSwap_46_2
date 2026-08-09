@@ -2,12 +2,13 @@ import { Exclude } from 'class-transformer';
 import {
   Column,
   Entity,
-  PrimaryGeneratedColumn,
   JoinTable,
   ManyToMany,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Role } from '../../shared/enums/role.enum';
 import { Gender } from '../../shared/enums/gender.enum';
+import { Category } from '../../categories/entities/category.entity';
 import { Skill } from '../../skills/entities/skill.entity';
 
 @Entity('users')
@@ -46,6 +47,10 @@ export class User {
   @Exclude()
   @Column({ select: false, nullable: true, type: 'text' })
   refreshToken: string | null;
+
+  @ManyToMany(() => Category, (category) => category.wantToLearnUsers)
+  @JoinTable({ name: 'users_want_to_learn' })
+  wantToLearn: Category[];
 
   @ManyToMany(() => Skill)
   @JoinTable({

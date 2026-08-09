@@ -13,11 +13,17 @@ import { AuthService } from './auth.service';
 import { Response } from 'express';
 import { AccessTokenGuard } from './guards/accessToken.guard';
 import { RolesGuard } from './guards/roles.guard';
-import { AuthResult, JwtPayload, RequestWithUser } from './auth.types';
+import {
+  AuthResult,
+  JwtPayload,
+  RequestWithRefreshToken,
+  RequestWithUser,
+} from './auth.types';
 import { LoginDto } from './dto/login.dto';
 import { Roles } from './decorators/roles.decorator';
 import { Role } from '../shared/enums/role.enum';
 import { RefreshTokenGuard } from './guards/refreshToken.guard';
+import { RegisterDto } from './dto/register.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -67,7 +73,6 @@ export class AuthController {
 
     res.cookie('accessToken', result.accessToken);
     res.cookie('refreshToken', result.refreshToken);
-
   }
 
   @Post('logout')
@@ -80,5 +85,10 @@ export class AuthController {
     return res
       .status(HttpStatus.OK)
       .json({ message: 'Выход выполнен успешно' });
+  }
+    @Post('register')
+  async register(@Body() dto: RegisterDto) {
+    const result = await this.authService.register(dto);
+    return result;
   }
 }
