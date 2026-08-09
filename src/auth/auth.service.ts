@@ -11,7 +11,7 @@ import { jwtConfig } from '../config/jwt.config';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, QueryFailedError } from 'typeorm';
 import { User } from '../users/entities/user.entity';
 import * as bcrypt from 'bcrypt';
 import { JwtPayload } from './auth.types';
@@ -85,11 +85,6 @@ export class AuthService {
 
   async register(dto: RegisterDto): Promise<AuthResult> {
     try {
-      const existing = await this.userRepository.findOne({ where: { email: dto.email } });
-      if (existing) {
-        throw new ConflictException('Пользователь с таким email уже существует');
-      }
-
       const hashedPassword = await bcrypt.hash(dto.password, 10);
 
       const newUserData: Partial<User> = {
@@ -97,11 +92,9 @@ export class AuthService {
         password: hashedPassword,
         city: dto.city,
         about: dto.about,
+        birthdate: dto.birthdate ? new Date(dto.birthdate) : undefined,
         role: Role.USER,
       };
-      if (dto.birthdate) {
-        newUserData.birthdate = new Date(dto.birthdate);
-      }
 
       const newUser = this.userRepository.create(newUserData as any);
       const user = await this.userRepository.save(newUser as any);
@@ -112,7 +105,7 @@ export class AuthService {
       const { accessToken, refreshToken } = this.generateTokens({
         id: user.id,
         email: user.email,
-        role: user.role as Role,
+        role: user.role,
       });
 
       (user as any).refreshToken = refreshToken;
@@ -133,6 +126,17 @@ export class AuthService {
         refreshToken,
       };
     } catch (err) {
+      if (err instanceof QueryFailedError) {
+        const code = (err as any).code;
+        if (code === '23505' || code === 'ER_DUP_ENTRY') {
+          throw new ConflictException('Пользователь с таким email уже существует');
+        }
+        const errno = (err as any).errno;
+        if (errno === 1062) {
+          throw new ConflictException('Пользователь с таким email уже существует');
+        }
+      }
+
       console.error('AuthService.register error:', (err as any)?.stack ?? err);
       throw new InternalServerErrorException('Ошибка регистрации');
     }
