@@ -1,5 +1,6 @@
 import {
   ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -58,10 +59,30 @@ export class SkillsService {
     return `This action returns a #${id} skill`;
   }
 
-  update(id: number, updateSkillDto: UpdateSkillDto) {
-    void updateSkillDto;
+  async update(ownerId: string, id: string, updateSkillDto: UpdateSkillDto) {
+    const skill = await this.skillsRepository.findOne({
+      where: { id },
+      relations: ['user'],
+    });
 
-    return `This action updates a #${id} skill`;
+    if (!skill) {
+      throw new NotFoundException(`Навый с id ${id} не найден`);
+    }
+
+    if (skill.user.id !== ownerId) {
+      throw new ForbiddenException('Вы не можете редактировать чужой навык');
+    }
+
+    const updatedSkill = await this.skillsRepository.preload({
+      id,
+      ...updateSkillDto,
+    });
+
+    if (!updatedSkill) {
+      throw new NotFoundException(`Навый с id ${id} не найден`);
+    }
+
+    return this.skillsRepository.save(updatedSkill);
   }
 
   remove(id: number) {
