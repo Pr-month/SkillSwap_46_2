@@ -15,6 +15,10 @@ export type AuthUser = {
   id: string;
   email: string;
   role: Role;
+  city?: string | null;
+  about?: string | null;
+  birthdate?: string | null;
+  avatar?: string | null;
 };
 
 export type AuthResult = {
@@ -22,6 +26,7 @@ export type AuthResult = {
   accessToken: string;
   refreshToken: string;
 };
+
 export type RequestWithRefreshToken = Request & {
   user: JwtPayload & { refreshToken: string };
 };

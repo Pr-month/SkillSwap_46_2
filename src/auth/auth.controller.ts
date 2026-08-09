@@ -23,6 +23,7 @@ import { LoginDto } from './dto/login.dto';
 import { Roles } from './decorators/roles.decorator';
 import { Role } from '../shared/enums/role.enum';
 import { RefreshTokenGuard } from './guards/refreshToken.guard';
+import { RegisterDto } from './dto/register.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -84,5 +85,10 @@ export class AuthController {
     return res
       .status(HttpStatus.OK)
       .json({ message: 'Выход выполнен успешно' });
+  }
+    @Post('register')
+  async register(@Body() dto: RegisterDto) {
+    const result = await this.authService.register(dto);
+    return result;
   }
 }
