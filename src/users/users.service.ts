@@ -79,6 +79,20 @@ export class UsersService {
     return this.userRepository.findOne({ where: { id } });
   }
 
+  async findByEmailWithPassword(email: string): Promise<User | null> {
+    return this.userRepository.findOne({
+      where: { email },
+      select: ['id', 'email', 'password', 'role'],
+    });
+  }
+
+  async findByIdWithRefreshToken(id: string): Promise<User | null> {
+    return this.userRepository.findOne({
+      where: { id },
+      select: ['id', 'email', 'role', 'refreshToken'],
+    });
+  }
+
   async updateRefreshToken(
     userId: string,
     refreshToken: string,
@@ -88,5 +102,16 @@ export class UsersService {
 
   async clearRefreshToken(userId: string): Promise<void> {
     await this.userRepository.update(userId, { refreshToken: null });
+  }
+
+  async findByIdWithFavorites(id: string): Promise<User | null> {
+    return this.userRepository.findOne({
+      where: { id },
+      relations: { favoriteSkills: true },
+    });
+  }
+
+  async saveFavorites(user: User): Promise<void> {
+    await this.userRepository.save(user);
   }
 }
