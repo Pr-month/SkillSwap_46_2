@@ -52,8 +52,11 @@ export class SkillsController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.skillsService.remove(+id);
+  @UseGuards(AccessTokenGuard)
+  remove(@Req() req: Request, @Param('id') id: string) {
+    const user = req.user as JwtPayload;
+
+    return this.skillsService.remove(user.sub, id);
   }
 
   @Post(':id/favorite')

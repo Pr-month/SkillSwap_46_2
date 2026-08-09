@@ -85,8 +85,23 @@ export class SkillsService {
     return this.skillsRepository.save(updatedSkill);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} skill`;
+  async remove(ownerId: string, id: string): Promise<{ message: string }> {
+    const skill = await this.skillsRepository.findOne({
+      where: { id },
+      relations: ['user'],
+    });
+
+    if (!skill) {
+      throw new NotFoundException(`Навый с id ${id} не найден`);
+    }
+
+    if (skill.user.id !== ownerId) {
+      throw new ForbiddenException('Вы не можете удалить чужой навык');
+    }
+
+    await this.skillsRepository.delete(id);
+
+    return { message: 'Навык успешно удален' };
   }
 
   async addToFavorites(
