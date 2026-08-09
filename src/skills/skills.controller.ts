@@ -41,8 +41,14 @@ export class SkillsController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateSkillDto: UpdateSkillDto) {
-    return this.skillsService.update(id, updateSkillDto);
+  @UseGuards(AccessTokenGuard)
+  update(
+    @Req() req: Request,
+    @Param('id') id: string,
+    @Body() updateSkillDto: UpdateSkillDto,
+  ) {
+    const user = req.user as JwtPayload;
+    return this.skillsService.update(user.sub, id, updateSkillDto);
   }
 
   @Delete(':id')
