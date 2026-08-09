@@ -38,6 +38,13 @@ export class UsersController {
     return this.usersService.findById(user.sub);
   }
 
+  @Patch('me')
+  @UseGuards(AccessTokenGuard)
+  updateMe(@Req() req: Request, @Body() dto: UpdateUserDto) {
+    const user = req.user as JwtPayload;
+    return this.usersService.update(user.sub, dto);
+  }
+
   @Patch('me/password')
   @UseGuards(AccessTokenGuard)
   changePassword(@Req() req: Request, @Body() dto: ChangePasswordDto) {
@@ -48,11 +55,6 @@ export class UsersController {
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.usersService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(+id, updateUserDto);
   }
 
   @Delete(':id')
