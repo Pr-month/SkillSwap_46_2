@@ -10,6 +10,7 @@ import { FindSkillsDto } from './dto/find-skills.dto';
 import { CreateSkillDto } from './dto/create-skill.dto';
 import { UpdateSkillDto } from './dto/update-skill.dto';
 import { UsersService } from '../users/users.service';
+import { User } from 'src/users/entities/user.entity';
 
 @Injectable()
 export class SkillsService {
@@ -19,10 +20,12 @@ export class SkillsService {
     private readonly usersService: UsersService,
   ) {}
 
-  create(createSkillDto: CreateSkillDto) {
-    void createSkillDto;
-
-    return 'This action adds a new skill';
+  create(ownerId: string, createSkillDto: CreateSkillDto) {
+    const skill = this.skillsRepository.create({
+      ...createSkillDto,
+      user: { id: ownerId } as User,
+    });
+    return this.skillsRepository.save(skill);
   }
 
   async findAll(dto: FindSkillsDto) {
