@@ -1,5 +1,10 @@
-import { Type } from 'class-transformer';
-import { IsDate, IsEmail, IsEnum, IsOptional, IsString } from 'class-validator';
+import {
+  IsDateString,
+  IsEmail,
+  IsEnum,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 import { Gender } from 'src/shared/enums/gender.enum';
 
 export class UpdateUserDto {
@@ -16,8 +21,7 @@ export class UpdateUserDto {
   about: string;
 
   @IsOptional()
-  @Type(() => Date)
-  @IsDate()
+  @IsDateString()
   birthdate: Date;
 
   @IsOptional()
