@@ -61,3 +61,6 @@ INSTRUCTION.md
 # Local helper scripts
 gh_query.json
 gh_request.ps1
+
+# Folder for uploading user files
+public/uploads

@@ -1,12 +1,17 @@
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { appConfig } from './config/app.config';
 import { jwtConfig } from './config/jwt.config';
-import { dbConfig } from './db.config';
+import { dbConfig, TDbConfig } from './config/db.config';
 import { UsersModule } from './users/users.module';
+import { SkillsModule } from './skills/skills.module';
+import { CategoriesModule } from './categories/categories.module';
+import { FilesModule } from './files/files.module';
+import { User } from './users/entities/user.entity';
 
 @Module({
   imports: [
@@ -14,8 +19,18 @@ import { UsersModule } from './users/users.module';
       isGlobal: true,
       load: [appConfig, dbConfig, jwtConfig],
     }),
+    TypeOrmModule.forRootAsync({
+      inject: [dbConfig.KEY],
+      useFactory: (config: TDbConfig) => ({
+        ...config,
+        entities: [User],
+      }),
+    }),
     UsersModule,
     AuthModule,
+    SkillsModule,
+    CategoriesModule,
+    FilesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
