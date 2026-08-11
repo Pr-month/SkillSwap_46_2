@@ -1,6 +1,8 @@
 import { registerAs, ConfigType } from '@nestjs/config';
-import { DataSourceOptions } from 'typeorm';
+import { DataSource, DataSourceOptions } from 'typeorm';
 import * as path from 'path';
+import * as dotenv from 'dotenv';
+dotenv.config();
 
 export const dbConfig = registerAs(
   'DB_CONFIG',
@@ -14,8 +16,10 @@ export const dbConfig = registerAs(
       database: process.env.DB_NAME,
       entities: [path.join(__dirname, '..', '**', '*.entity{.ts,.js}')],
       migrations: [path.join(__dirname, '..', 'migrations', '*{.ts,.js}')],
-      synchronize: false,
+      synchronize: true,
     }) as DataSourceOptions,
 );
 
 export type TDbConfig = ConfigType<typeof dbConfig>;
+
+export const AppDataSource = new DataSource(dbConfig());
