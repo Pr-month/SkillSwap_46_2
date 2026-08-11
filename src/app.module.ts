@@ -23,7 +23,6 @@ import { User } from './users/entities/user.entity';
       inject: [dbConfig.KEY],
       useFactory: (config: TDbConfig) => ({
         ...config,
-        entities: [User],
       }),
     }),
     UsersModule,
