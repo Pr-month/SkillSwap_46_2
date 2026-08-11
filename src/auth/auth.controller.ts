@@ -86,7 +86,8 @@ export class AuthController {
       .status(HttpStatus.OK)
       .json({ message: 'Выход выполнен успешно' });
   }
-    @Post('register')
+
+  @Post('register')
   async register(@Body() dto: RegisterDto) {
     const result = await this.authService.register(dto);
     return result;
