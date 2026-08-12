@@ -6,6 +6,7 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { AccessTokenGuard } from './guards/accessToken.guard';
 import { RefreshTokenGuard } from './guards/refreshToken.guard';
+import { WsJwtGuard } from './guards/ws.guard';
 import { AccessTokenStrategy } from './strategies/accessToken.strategy';
 import { RefreshTokenStrategy } from './strategies/refreshToken.strategy';
 import { jwtConfig } from '../config/jwt.config';
@@ -35,7 +36,8 @@ import { User } from '../users/entities/user.entity';
     AccessTokenStrategy,
     RefreshTokenGuard,
     RefreshTokenStrategy,
+    WsJwtGuard,
   ],
-  exports: [JwtModule, AccessTokenGuard, RefreshTokenGuard],
+  exports: [JwtModule, AccessTokenGuard, RefreshTokenGuard, WsJwtGuard],
 })
 export class AuthModule {}
