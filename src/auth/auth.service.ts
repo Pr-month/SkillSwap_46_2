@@ -94,15 +94,14 @@ export class AuthService {
     try {
       const hashedPassword = await bcrypt.hash(dto.password, 10);
 
-      const city = (dto as unknown as { city?: string }).city;
-      const about = (dto as unknown as { about?: string }).about;
       const birthdate = dto.birthdate ? new Date(dto.birthdate) : undefined;
 
       const newUserData: Partial<User> = {
         email: dto.email,
         password: hashedPassword,
-        city,
-        about,
+        city: dto.city,
+        about: dto.about,
+        name: dto.name,
         birthdate,
         role: Role.USER,
       };
@@ -142,12 +141,6 @@ export class AuthService {
         const dbError = err as unknown as { code?: string; errno?: number };
         const code = dbError.code;
         if (code === '23505' || code === 'ER_DUP_ENTRY') {
-          throw new ConflictException(
-            'Пользователь с таким email уже существует',
-          );
-        }
-        const errno = dbError.errno;
-        if (errno === 1062) {
           throw new ConflictException(
             'Пользователь с таким email уже существует',
           );
