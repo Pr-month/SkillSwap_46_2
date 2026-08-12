@@ -1,4 +1,3 @@
-import { Request } from 'express';
 import { Role } from '../shared/enums/role.enum';
 
 export type JwtPayload = {
@@ -19,6 +18,7 @@ export type AuthUser = {
   about?: string | null;
   birthdate?: string | null;
   avatar?: string | null;
+  name: string;
 };
 
 export type AuthResult = {

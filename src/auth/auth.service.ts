@@ -50,7 +50,7 @@ export class AuthService {
   async login(loginDto: LoginDto): Promise<AuthResult> {
     const user = await this.userRepository.findOne({
       where: { email: loginDto.email },
-      select: ['id', 'email', 'password', 'role', 'refreshToken'],
+      select: ['id', 'email', 'password', 'role', 'refreshToken', 'name'],
     });
 
     if (!user) {
@@ -75,14 +75,15 @@ export class AuthService {
       role: user.role,
     });
 
-    (user as any).refreshToken = refreshToken;
-    await this.userRepository.save(user as any);
+    user.refreshToken = refreshToken;
+    await this.userRepository.save(user);
 
     return {
       user: {
         id: user.id,
         email: user.email,
         role: user.role,
+        name: user.name,
       },
       accessToken,
       refreshToken,
@@ -93,17 +94,21 @@ export class AuthService {
     try {
       const hashedPassword = await bcrypt.hash(dto.password, 10);
 
+      const city = (dto as unknown as { city?: string }).city;
+      const about = (dto as unknown as { about?: string }).about;
+      const birthdate = dto.birthdate ? new Date(dto.birthdate) : undefined;
+
       const newUserData: Partial<User> = {
         email: dto.email,
         password: hashedPassword,
-        city: dto.city,
-        about: dto.about,
-        birthdate: dto.birthdate ? new Date(dto.birthdate) : undefined,
+        city,
+        about,
+        birthdate,
         role: Role.USER,
       };
 
-      const newUser = this.userRepository.create(newUserData as any);
-      const user = await this.userRepository.save(newUser as any);
+      const newUser = this.userRepository.create(newUserData);
+      const user = await this.userRepository.save(newUser);
       if (!user) {
         throw new UnauthorizedException('Не удалось создать пользователя');
       }
@@ -127,19 +132,21 @@ export class AuthService {
             ? user.birthdate.toISOString().split('T')[0]
             : null,
           role: user.role,
+          name: user.name,
         },
         accessToken,
         refreshToken,
       };
-    } catch (err) {
+    } catch (err: unknown) {
       if (err instanceof QueryFailedError) {
-        const code = (err as any).code;
+        const dbError = err as unknown as { code?: string; errno?: number };
+        const code = dbError.code;
         if (code === '23505' || code === 'ER_DUP_ENTRY') {
           throw new ConflictException(
             'Пользователь с таким email уже существует',
           );
         }
-        const errno = (err as any).errno;
+        const errno = dbError.errno;
         if (errno === 1062) {
           throw new ConflictException(
             'Пользователь с таким email уже существует',
@@ -147,7 +154,10 @@ export class AuthService {
         }
       }
 
-      console.error('AuthService.register error:', err?.stack ?? err);
+      console.error(
+        'AuthService.register error:',
+        err instanceof Error ? err.stack : String(err),
+      );
       throw new InternalServerErrorException('Ошибка регистрации');
     }
   }
@@ -155,8 +165,8 @@ export class AuthService {
   async deleteRefreshToken(userId: string): Promise<void> {
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (user) {
-      (user as any).refreshToken = null;
-      await this.userRepository.save(user as any);
+      user.refreshToken = null;
+      await this.userRepository.save(user);
     }
   }
 
