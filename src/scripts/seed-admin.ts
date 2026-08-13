@@ -1,7 +1,5 @@
-import 'dotenv/config';
-import { DataSource } from 'typeorm';
+import { AppDataSource } from '../config/db.config';
 import * as bcrypt from 'bcrypt';
-import * as path from 'path';
 import { User } from '../users/entities/user.entity';
 import { Role } from '../shared/enums/role.enum';
 
@@ -15,20 +13,10 @@ if (!adminEmail || !adminPassword) {
   process.exit(1);
 }
 
-const dataSource = new DataSource({
-  type: 'postgres',
-  host: process.env.DB_HOST || 'localhost',
-  port: Number(process.env.DB_PORT) || 5432,
-  username: process.env.DB_USERNAME,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  entities: [path.join(__dirname, '..', '**', '*.entity{.ts,.js}')],
-  synchronize: false,
-});
-
 async function seedAdmin() {
-  await dataSource.initialize();
-  const userRepository = dataSource.getRepository(User);
+  await AppDataSource.initialize();
+
+  const userRepository = AppDataSource.getRepository(User);
 
   const existing = await userRepository.findOne({
     where: { email: adminEmail },
@@ -36,7 +24,6 @@ async function seedAdmin() {
 
   if (existing) {
     console.log(`Администратор с email "${adminEmail}" уже существует`);
-    await dataSource.destroy();
     return;
   }
 
@@ -51,11 +38,14 @@ async function seedAdmin() {
 
   await userRepository.save(admin);
   console.log(`Администратор "${adminEmail}" успешно создан`);
-
-  await dataSource.destroy();
 }
 
-seedAdmin().catch((error) => {
-  console.error('Ошибка при создании администратора:', error);
-  process.exit(1);
-});
+seedAdmin()
+  .catch((error) => {
+    console.error('Ошибка при создании администратора:', error);
+  })
+  .finally(() => {
+    if (AppDataSource.isInitialized) {
+      AppDataSource.destroy();
+    }
+  });
