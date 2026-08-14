@@ -7,7 +7,8 @@ export const seedUserData = [
     email: 'anna.petrova@example.com',
     password: 'Password123!',
     name: 'Анна Петрова',
-    about: 'Изучаю английский и хочу подтянуть разговорную практику. Люблю рисование и готова делиться опытом с новичками.',
+    about:
+      'Изучаю английский и хочу подтянуть разговорную практику. Люблю рисование и готова делиться опытом с новичками.',
     birthdate: new Date('1998-04-12'),
     city: 'Москва',
     gender: Gender.FEMALE,
@@ -22,7 +23,8 @@ export const seedUserData = [
     email: 'ivan.smirnov@example.com',
     password: 'SecurePass456!',
     name: 'Иван Смирнов',
-    about: 'Backend-разработчик, интересуюсь программированием и хочу научиться игре на гитаре.',
+    about:
+      'Backend-разработчик, интересуюсь программированием и хочу научиться игре на гитаре.',
     birthdate: new Date('1995-11-23'),
     city: 'Санкт-Петербург',
     gender: Gender.MALE,

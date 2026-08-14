@@ -30,3 +30,7 @@ export type AuthResult = {
 export type RequestWithRefreshToken = Request & {
   user: JwtPayload & { refreshToken: string };
 };
+
+export type AuthResponse = {
+  user: JwtPayload;
+};
