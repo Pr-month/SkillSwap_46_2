@@ -1,4 +1,4 @@
-import { Logger } from '@nestjs/common';
+import { Logger, UseGuards } from '@nestjs/common';
 import {
   OnGatewayConnection,
   WebSocketGateway,
@@ -9,6 +9,7 @@ import { WsJwtGuard } from '../auth/guards/ws-jwt.guard';
 import { SocketWithUser } from '../auth/auth.types';
 import { NotificationPayload, NotificationType } from './notifications.types';
 
+@UseGuards(WsJwtGuard)
 @WebSocketGateway({ cors: { origin: '*' } })
 export class NotificationsGateway implements OnGatewayConnection {
   private readonly logger = new Logger(NotificationsGateway.name);
@@ -18,6 +19,7 @@ export class NotificationsGateway implements OnGatewayConnection {
 
   constructor(private readonly wsJwtGuard: WsJwtGuard) {}
 
+  // Гарды не выполняются на lifecycle-хуках, поэтому токен проверяем вручную
   handleConnection(client: SocketWithUser) {
     try {
       const payload = this.wsJwtGuard.verify(client);
