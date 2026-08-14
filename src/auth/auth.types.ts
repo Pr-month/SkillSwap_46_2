@@ -1,3 +1,5 @@
+import { Socket } from 'socket.io';
+import { DefaultEventsMap } from 'socket.io/dist/typed-events';
 import { Role } from '../shared/enums/role.enum';
 
 export type JwtPayload = {
@@ -5,6 +7,17 @@ export type JwtPayload = {
   email: string;
   role: Role;
 };
+
+export type SocketData = {
+  user: JwtPayload;
+};
+
+export type SocketWithUser = Socket<
+  DefaultEventsMap,
+  DefaultEventsMap,
+  DefaultEventsMap,
+  SocketData
+>;
 
 export type RequestWithUser = Request & {
   user: JwtPayload;
