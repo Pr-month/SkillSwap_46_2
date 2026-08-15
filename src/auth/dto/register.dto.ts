@@ -5,6 +5,7 @@ import {
   IsString,
   MinLength,
   IsDateString,
+  IsUUID
 } from 'class-validator';
 
 export class RegisterDto {
@@ -21,8 +22,8 @@ export class RegisterDto {
   password: string;
 
   @IsOptional()
-  @IsString()
-  city?: string;
+  @IsUUID()
+  cityId?: string;
 
   @IsOptional()
   @IsString()
