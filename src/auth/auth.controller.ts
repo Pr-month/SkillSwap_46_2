@@ -91,13 +91,13 @@ export class AuthController {
       httpOnly: true,
       sameSite: 'lax',
       path: '/',
-      maxAge: this.jwtConfiguration.accessExpiresIn,
+      maxAge: this.jwtConfiguration.accessExpiresIn * 1000,
     });
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       sameSite: 'lax',
       path: '/',
-      maxAge: this.jwtConfiguration.refreshExpiresIn,
+      maxAge: this.jwtConfiguration.refreshExpiresIn * 1000,
     });
   }
 
