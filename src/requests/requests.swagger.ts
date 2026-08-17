@@ -10,10 +10,8 @@ import {
   ApiForbiddenResponse,
 } from '@nestjs/swagger';
 import { CreateRequestDto } from './dto/create-request.dto';
-import { UpdateRequestDto } from './dto/update-request.dto';
 
 const bodyCreate = ApiBody({ type: CreateRequestDto });
-const bodyUpdate = ApiBody({ type: UpdateRequestDto });
 const pathId = (name = 'id') => ApiParam({ name, description: 'ID заявки' });
 
 export const ApiCreateRequest = () =>
@@ -42,7 +40,6 @@ export const ApiGetOutgoingRequests = () =>
 export const ApiUpdateRequest = () =>
   applyDecorators(
     pathId(),
-    bodyUpdate,
     ApiOkResponse(),
     ApiForbiddenResponse(),
     ApiNotFoundResponse(),

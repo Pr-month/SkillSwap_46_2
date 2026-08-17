@@ -2,10 +2,10 @@ import {
   Controller,
   Get,
   Post,
-  Body,
   Patch,
-  Param,
   Delete,
+  Body,
+  Param,
   UseGuards,
   Req,
   ParseUUIDPipe,
@@ -16,7 +16,7 @@ import {
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { RequestsService } from './requests.service';
 import { CreateRequestDto } from './dto/create-request.dto';
-import { UpdateRequestDto } from './dto/update-request.dto';
+import { RequestStatus } from './request-status.enums';
 import { AccessTokenGuard } from '../auth/guards/accessToken.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -75,11 +75,10 @@ export class RequestsController {
   async markRead(
     @Req() req: AuthResponse,
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() updateRequestDto: UpdateRequestDto,
   ) {
     const userId = req.user.sub;
     this.logger.debug(`User ${userId} marking request ${id} as READ`);
-    return this.requestsService.update(id, updateRequestDto, userId);
+    return this.requestsService.markRead(id, userId);
   }
 
   @Patch(':id/accept')
@@ -88,11 +87,14 @@ export class RequestsController {
   async accept(
     @Req() req: AuthResponse,
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() updateRequestDto: UpdateRequestDto,
   ) {
     const userId = req.user.sub;
     this.logger.debug(`User ${userId} accepting request ${id}`);
-    return this.requestsService.update(id, updateRequestDto, userId);
+    return this.requestsService.updateStatus(
+      id,
+      userId,
+      RequestStatus.ACCEPTED,
+    );
   }
 
   @Patch(':id/reject')
@@ -101,11 +103,14 @@ export class RequestsController {
   async reject(
     @Req() req: AuthResponse,
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() updateRequestDto: UpdateRequestDto,
   ) {
     const userId = req.user.sub;
     this.logger.debug(`User ${userId} rejecting request ${id}`);
-    return this.requestsService.update(id, updateRequestDto, userId);
+    return this.requestsService.updateStatus(
+      id,
+      userId,
+      RequestStatus.REJECTED,
+    );
   }
 
   @Delete(':id')

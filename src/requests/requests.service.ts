@@ -9,7 +9,6 @@ import { Repository, In } from 'typeorm';
 import { Request } from './entities/request.entity';
 import { Skill } from '../skills/entities/skill.entity';
 import { CreateRequestDto } from './dto/create-request.dto';
-import { UpdateRequestDto } from './dto/update-request.dto';
 import { RequestStatus } from './request-status.enums';
 
 @Injectable()
@@ -96,10 +95,10 @@ export class RequestsService {
     });
   }
 
-  async update(
+  async updateStatus(
     id: string,
-    updateRequestDto: UpdateRequestDto,
     userId: string,
+    status: typeof RequestStatus.ACCEPTED | typeof RequestStatus.REJECTED,
   ): Promise<Request> {
     const request = await this.requestsRepository.findOne({
       where: { id },
@@ -114,13 +113,31 @@ export class RequestsService {
       throw new ForbiddenException('Недостаточно прав');
     }
 
-    if (!Object.values(RequestStatus).includes(updateRequestDto.status)) {
+    if (!Object.values(RequestStatus).includes(status)) {
       throw new BadRequestException('Некорректный статус');
     }
 
-    request.status = updateRequestDto.status;
+    request.status = status;
     request.isRead = true;
 
+    return this.requestsRepository.save(request);
+  }
+
+  async markRead(id: string, userId: string): Promise<Request> {
+    const request = await this.requestsRepository.findOne({
+      where: { id },
+      relations: ['receiver'],
+    });
+
+    if (!request) {
+      throw new NotFoundException('Заявка не найдена');
+    }
+
+    if (request.receiver.id !== userId) {
+      throw new ForbiddenException('Недостаточно прав');
+    }
+
+    request.isRead = true;
     return this.requestsRepository.save(request);
   }
 
@@ -144,33 +161,5 @@ export class RequestsService {
 
     await this.requestsRepository.delete(id);
     return { message: 'Заявка удалена' };
-  }
-  
-  async updateStatus(
-    id: string,
-    userId: string,
-    status: string,
-  ): Promise<Request> {
-    const request = await this.requestsRepository.findOne({
-      where: { id },
-      relations: ['receiver'],
-    });
-
-    if (!request) {
-      throw new NotFoundException('Заявка не найдена');
-    }
-
-    if (request.receiver.id !== userId) {
-      throw new ForbiddenException('Недостаточно прав');
-    }
-
-    if (!Object.values(RequestStatus).includes(status as RequestStatus)) {
-      throw new BadRequestException('Некорректный статус');
-    }
-
-    request.status = status as RequestStatus;
-    request.isRead = true;
-
-    return this.requestsRepository.save(request);
   }
 }
