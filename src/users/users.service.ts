@@ -94,7 +94,10 @@ export class UsersService {
   }
 
   async findById(id: string): Promise<User | null> {
-    return this.userRepository.findOne({ where: { id } });
+    return this.userRepository.findOne({
+      where: { id },
+      relations: { city: true }
+    });
   }
 
   async findByEmailWithPassword(email: string): Promise<User | null> {
