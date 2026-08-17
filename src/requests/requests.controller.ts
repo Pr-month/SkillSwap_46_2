@@ -34,13 +34,13 @@ import {
 @Controller('requests')
 @ApiBearerAuth()
 @UseGuards(AccessTokenGuard, RolesGuard)
-@Roles([Role.USER, Role.ADMIN])
 export class RequestsController {
   private readonly logger = new Logger(RequestsController.name);
 
   constructor(private readonly requestsService: RequestsService) {}
 
   @Post()
+  @Roles([Role.USER, Role.ADMIN])
   @ApiCreateRequest()
   async create(
     @Req() req: AuthResponse,
@@ -52,6 +52,7 @@ export class RequestsController {
   }
 
   @Get('incoming')
+  @Roles([Role.USER, Role.ADMIN])
   @ApiGetIncomingRequests()
   async findIncoming(@Req() req: AuthResponse) {
     const userId = req.user.sub;
@@ -60,6 +61,7 @@ export class RequestsController {
   }
 
   @Get('outgoing')
+  @Roles([Role.USER, Role.ADMIN])
   @ApiGetOutgoingRequests()
   async findOutgoing(@Req() req: AuthResponse) {
     const userId = req.user.sub;
@@ -67,19 +69,47 @@ export class RequestsController {
     return this.requestsService.findOutgoing(userId);
   }
 
-  @Patch(':id')
+  @Patch(':id/read')
+  @Roles([Role.USER, Role.ADMIN])
   @ApiUpdateRequest()
-  async update(
+  async markRead(
     @Req() req: AuthResponse,
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateRequestDto: UpdateRequestDto,
   ) {
     const userId = req.user.sub;
-    this.logger.debug(`User ${userId} updating request ${id}`);
+    this.logger.debug(`User ${userId} marking request ${id} as READ`);
+    return this.requestsService.update(id, updateRequestDto, userId);
+  }
+
+  @Patch(':id/accept')
+  @Roles([Role.USER, Role.ADMIN])
+  @ApiUpdateRequest()
+  async accept(
+    @Req() req: AuthResponse,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() updateRequestDto: UpdateRequestDto,
+  ) {
+    const userId = req.user.sub;
+    this.logger.debug(`User ${userId} accepting request ${id}`);
+    return this.requestsService.update(id, updateRequestDto, userId);
+  }
+
+  @Patch(':id/reject')
+  @Roles([Role.USER, Role.ADMIN])
+  @ApiUpdateRequest()
+  async reject(
+    @Req() req: AuthResponse,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() updateRequestDto: UpdateRequestDto,
+  ) {
+    const userId = req.user.sub;
+    this.logger.debug(`User ${userId} rejecting request ${id}`);
     return this.requestsService.update(id, updateRequestDto, userId);
   }
 
   @Delete(':id')
+  @Roles([Role.USER, Role.ADMIN])
   @ApiDeleteRequest()
   @HttpCode(HttpStatus.NO_CONTENT)
   async remove(

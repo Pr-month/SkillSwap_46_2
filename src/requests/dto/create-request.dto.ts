@@ -5,11 +5,6 @@ export class CreateRequestDto {
   @ApiProperty()
   @IsUUID('4')
   @IsNotEmpty()
-  receiverId!: string;
-
-  @ApiProperty()
-  @IsUUID('4')
-  @IsNotEmpty()
   offeredSkillId!: string;
 
   @ApiProperty()

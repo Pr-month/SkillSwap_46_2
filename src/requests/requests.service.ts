@@ -40,10 +40,15 @@ export class RequestsService {
 
       const offeredSkill = await skillRepo.findOne({
         where: { id: createRequestDto.offeredSkillId },
+        relations: ['user'],
       });
 
       if (!offeredSkill) {
         throw new NotFoundException('Навык не найден');
+      }
+
+      if (offeredSkill.user?.id !== senderId) {
+        throw new ForbiddenException('Навык не принадлежит отправителю заявки');
       }
 
       if (
@@ -139,5 +144,33 @@ export class RequestsService {
 
     await this.requestsRepository.delete(id);
     return { message: 'Заявка удалена' };
+  }
+  
+  async updateStatus(
+    id: string,
+    userId: string,
+    status: string,
+  ): Promise<Request> {
+    const request = await this.requestsRepository.findOne({
+      where: { id },
+      relations: ['receiver'],
+    });
+
+    if (!request) {
+      throw new NotFoundException('Заявка не найдена');
+    }
+
+    if (request.receiver.id !== userId) {
+      throw new ForbiddenException('Недостаточно прав');
+    }
+
+    if (!Object.values(RequestStatus).includes(status as RequestStatus)) {
+      throw new BadRequestException('Некорректный статус');
+    }
+
+    request.status = status as RequestStatus;
+    request.isRead = true;
+
+    return this.requestsRepository.save(request);
   }
 }
