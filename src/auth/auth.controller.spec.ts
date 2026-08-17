@@ -92,7 +92,11 @@ describe('AuthController', () => {
 
   describe('register', () => {
     it('возвращает только { user } и ставит обе httpOnly-куки', async () => {
-      const dto = { name: 'Test', email: 'user@example.com', password: '123456' };
+      const dto = {
+        name: 'Test',
+        email: 'user@example.com',
+        password: '123456',
+      };
       const { res, cookie } = createResponse();
 
       const result = await controller.register(dto, res);

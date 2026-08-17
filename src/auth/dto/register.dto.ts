@@ -5,7 +5,7 @@ import {
   IsString,
   MinLength,
   IsDateString,
-  IsUUID
+  IsUUID,
 } from 'class-validator';
 
 export class RegisterDto {

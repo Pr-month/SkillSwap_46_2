@@ -106,7 +106,15 @@ export class AuthController {
   }
 
   private clearAuthCookies(res: Response): void {
-    res.clearCookie('accessToken', { httpOnly: true, sameSite: 'lax', path: '/' });
-    res.clearCookie('refreshToken', { httpOnly: true, sameSite: 'lax', path: '/' });
+    res.clearCookie('accessToken', {
+      httpOnly: true,
+      sameSite: 'lax',
+      path: '/',
+    });
+    res.clearCookie('refreshToken', {
+      httpOnly: true,
+      sameSite: 'lax',
+      path: '/',
+    });
   }
 }
