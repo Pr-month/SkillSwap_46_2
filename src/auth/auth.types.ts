@@ -1,5 +1,5 @@
-import { Request } from 'express';
 import { Role } from '../shared/enums/role.enum';
+import { CityShort } from '../cities/cities.types';
 
 export type JwtPayload = {
   sub: string;
@@ -15,10 +15,11 @@ export type AuthUser = {
   id: string;
   email: string;
   role: Role;
-  city?: string | null;
+  city?: CityShort | null;
   about?: string | null;
   birthdate?: string | null;
   avatar?: string | null;
+  name: string;
 };
 
 export type AuthResult = {

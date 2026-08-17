@@ -1,19 +1,19 @@
 import {
   Controller,
   Get,
-  Post,
   Body,
   Patch,
   Param,
   Delete,
   Req,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { Request } from 'express';
 import { UsersService } from './users.service';
-import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { FindUsersDto } from './dto/find-users.dto';
 import { AccessTokenGuard } from '../auth/guards/accessToken.guard';
 import { JwtPayload } from '../auth/auth.types';
 
@@ -21,14 +21,9 @@ import { JwtPayload } from '../auth/auth.types';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Post()
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.usersService.create(createUserDto);
-  }
-
   @Get()
-  findAll() {
-    return this.usersService.findAll();
+  findAll(@Query() dto: FindUsersDto) {
+    return this.usersService.findAll(dto);
   }
 
   @Get('me')

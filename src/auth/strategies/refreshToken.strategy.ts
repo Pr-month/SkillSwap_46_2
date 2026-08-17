@@ -6,6 +6,11 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { jwtConfig } from '../../config/jwt.config';
 import { JwtPayload } from '../auth.types';
 
+const extractRefreshToken = (req: Request): string | null => {
+  const cookies = (req.cookies ?? {}) as Record<string, string>;
+  return cookies.refreshToken ?? null;
+};
+
 @Injectable()
 export class RefreshTokenStrategy extends PassportStrategy(
   Strategy,
@@ -16,7 +21,10 @@ export class RefreshTokenStrategy extends PassportStrategy(
     config: ConfigType<typeof jwtConfig>,
   ) {
     super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      jwtFromRequest: ExtractJwt.fromExtractors([
+        ExtractJwt.fromAuthHeaderAsBearerToken(),
+        extractRefreshToken,
+      ]),
       ignoreExpiration: false,
       secretOrKey: config.refreshSecret,
       passReqToCallback: true,
@@ -26,7 +34,7 @@ export class RefreshTokenStrategy extends PassportStrategy(
   validate(req: Request, payload: JwtPayload) {
     return {
       ...payload,
-      refreshToken: req.cookies?.refreshToken ?? null,
+      refreshToken: extractRefreshToken(req),
     };
   }
 }

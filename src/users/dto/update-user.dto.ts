@@ -24,9 +24,9 @@ export class UpdateUserDto {
   @IsDateString()
   birthdate: Date;
 
-  @IsOptional()
-  @IsString()
-  city: string;
+  // @IsOptional()
+  // @IsString()
+  // city: string;
 
   @IsOptional()
   @IsEnum(Gender)

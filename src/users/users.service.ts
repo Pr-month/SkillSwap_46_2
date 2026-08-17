@@ -9,6 +9,7 @@ import * as bcrypt from 'bcrypt';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { User } from './entities/user.entity';
+import { FindUsersDto } from './dto/find-users.dto';
 
 @Injectable()
 export class UsersService {
@@ -17,8 +18,25 @@ export class UsersService {
     private readonly userRepository: Repository<User>,
   ) {}
 
-  findAll() {
-    return this.userRepository.find();
+  async findAll(dto: FindUsersDto) {
+    const { page, limit } = dto;
+
+    const [data, total] = await this.userRepository.findAndCount({
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+
+    const totalPages = Math.ceil(total / limit);
+
+    if (totalPages > 0 && page > totalPages) {
+      throw new NotFoundException(`Запрашиваемая страница ${page} не найдена.`);
+    }
+
+    return {
+      data,
+      page,
+      totalPages,
+    };
   }
 
   async changePassword(
@@ -76,7 +94,10 @@ export class UsersService {
   }
 
   async findById(id: string): Promise<User | null> {
-    return this.userRepository.findOne({ where: { id } });
+    return this.userRepository.findOne({
+      where: { id },
+      relations: { city: true }
+    });
   }
 
   async findByEmailWithPassword(email: string): Promise<User | null> {
