@@ -1,7 +1,8 @@
 import { Exclude } from 'class-transformer';
 import {
   Column,
-  Entity, JoinColumn,
+  Entity,
+  JoinColumn,
   JoinTable,
   ManyToMany,
   ManyToOne,
@@ -11,7 +12,7 @@ import { Role } from '../../shared/enums/role.enum';
 import { Gender } from '../../shared/enums/gender.enum';
 import { Category } from '../../categories/entities/category.entity';
 import { Skill } from '../../skills/entities/skill.entity';
-import { City } from "../../cities/entities/city.entity";
+import { City } from '../../cities/entities/city.entity';
 
 @Entity('users')
 export class User {
@@ -36,10 +37,10 @@ export class User {
 
   @ManyToOne(() => City, (city) => city.users, {
     nullable: true,
-    onDelete: 'SET NULL'
+    onDelete: 'SET NULL',
   })
   @JoinColumn({ name: 'city_id' })
-  city: City | null
+  city: City | null;
 
   @Column({ type: 'enum', enum: Gender, nullable: true })
   gender: Gender;

@@ -4,9 +4,9 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
-  OneToMany
-} from "typeorm";
-import { User } from "../../users/entities/user.entity";
+  OneToMany,
+} from 'typeorm';
+import { User } from '../../users/entities/user.entity';
 
 @Entity('cities')
 export class City {
