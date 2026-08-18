@@ -16,7 +16,8 @@ export const seedUserData = [
     email: 'anna.petrova@example.com',
     password: 'Password123!',
     name: 'Анна Петрова',
-    about: 'Изучаю английский и хочу подтянуть разговорную практику. Люблю рисование и готова делиться опытом с новичками.',
+    about:
+      'Изучаю английский и хочу подтянуть разговорную практику. Люблю рисование и готова делиться опытом с новичками.',
     birthdate: new Date('1998-04-12'),
     city: createCity('55b0ae5d-4970-43e8-9e06-b701406e48df', 'Город1', 'Регион1'),
     gender: Gender.FEMALE,
@@ -31,7 +32,8 @@ export const seedUserData = [
     email: 'ivan.smirnov@example.com',
     password: 'SecurePass456!',
     name: 'Иван Смирнов',
-    about: 'Backend-разработчик, интересуюсь программированием и хочу научиться игре на гитаре.',
+    about:
+      'Backend-разработчик, интересуюсь программированием и хочу научиться игре на гитаре.',
     birthdate: new Date('1995-11-23'),
     city: createCity('dea5c7bd-0060-4b3e-a83d-71772b902eaa', 'Город2', 'Регион2'),
     gender: Gender.MALE,
