@@ -21,7 +21,8 @@
     "seed:user": "ts-node -r tsconfig-paths/register src/scripts/seed-user.ts",
     "seed:admin": "ts-node src/scripts/seed-admin.ts",
     "seed:categories": "ts-node src/scripts/seed-categories.ts",
-    "seed:skills": "ts-node src/scripts/seed-skills.ts"
+    "seed:skills": "ts-node src/scripts/seed-skills.ts",
+    "seed:cities": "ts-node src/scripts/seed-cities.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.1.29",
