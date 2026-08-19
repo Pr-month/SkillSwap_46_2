@@ -3,6 +3,7 @@ import { Repository, ILike } from 'typeorm';
 import { City } from './entities/city.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CityShort } from './cities.types';
+import { CreateCityDto } from './dto/create-city.dto';
 
 const SEARCH_RESULTS_LIMIT = 10;
 
@@ -20,5 +21,14 @@ export class CitiesService {
       order: { name: 'ASC' },
       take: SEARCH_RESULTS_LIMIT,
     });
+  }
+
+  async create(dto: CreateCityDto): Promise<City> {
+    const city = this.cityRepository.create({
+      name: dto.name,
+      region: dto.region,
+    });
+
+    return this.cityRepository.save(city);
   }
 }
