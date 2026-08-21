@@ -17,6 +17,11 @@
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "paths": {
+      "src/*": ["src/*"]
+    },
     "types": ["node", "jest"]
   }
 }
