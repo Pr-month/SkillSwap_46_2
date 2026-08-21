@@ -26,12 +26,13 @@ import {
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { Role } from '../shared/enums/role.enum';
+import { ApiTags } from '@nestjs/swagger';
 import {
-  ApiCookieAuth,
-  ApiOperation,
-  ApiResponse,
-  ApiTags,
-} from '@nestjs/swagger';
+  ApiAuthLogin,
+  ApiAuthLogout,
+  ApiAuthRefresh,
+  ApiAuthRegister,
+} from './auth.swagger';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -44,16 +45,7 @@ export class AuthController {
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Вход пользователя в систему' })
-  @ApiResponse({
-    status: 200,
-    description:
-      'Успешный вход. Access и refresh токены устанавливаются в httpOnly cookies. Возвращается user',
-  })
-  @ApiResponse({
-    status: 401,
-    description: 'Не верный email или пароль',
-  })
+  @ApiAuthLogin()
   async login(
     @Body() loginDto: LoginDto,
     @Res({ passthrough: true }) res: Response,
@@ -67,17 +59,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(RefreshTokenGuard, RolesGuard)
   @Roles([Role.ADMIN, Role.USER])
-  @ApiCookieAuth('refreshToken')
-  @ApiOperation({ summary: 'Обновление пары токенов' })
-  @ApiResponse({
-    status: 200,
-    description: 'Токены обновлены и установлены в httpOnly cookies',
-  })
-  @ApiResponse({
-    status: 401,
-    description:
-      'Refresh token отсутствует, невалиден или пользователь не авторизован',
-  })
+  @ApiAuthRefresh()
   async refresh(
     @Req() req: RequestWithRefreshToken,
     @Res({ passthrough: true }) res: Response,
@@ -95,17 +77,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(AccessTokenGuard, RolesGuard)
   @Roles([Role.USER, Role.ADMIN])
-  @ApiCookieAuth('accessToken')
-  @ApiOperation({ summary: 'Выход пользователя из системы' })
-  @ApiResponse({
-    status: 200,
-    description:
-      'Пользователь вышел из системы, токены удалены, cookies очищены',
-  })
-  @ApiResponse({
-    status: 401,
-    description: 'Пользователь не авторизован',
-  })
+  @ApiAuthLogout()
   async logout(
     @Req() req: RequestWithUser,
     @Res({ passthrough: true }) res: Response,
@@ -116,20 +88,7 @@ export class AuthController {
   }
 
   @Post('register')
-  @ApiOperation({ summary: 'Регистрация нового пользователя' })
-  @ApiResponse({
-    status: 201,
-    description:
-      'Пользователь создан. Access и refresh токены устанавливаются в httpOnly cookies. Возвращается user',
-  })
-  @ApiResponse({
-    status: 400,
-    description: 'Ошибка валидации или город с таким ID не найден',
-  })
-  @ApiResponse({
-    status: 409,
-    description: 'Пользователь с таким email уже существует',
-  })
+  @ApiAuthRegister()
   async register(
     @Body() dto: RegisterDto,
     @Res({ passthrough: true }) res: Response,
