@@ -4,35 +4,36 @@ import {
   IsEnum,
   IsOptional,
   IsString,
+  IsUUID,
 } from 'class-validator';
 import { Gender } from 'src/shared/enums/gender.enum';
 
 export class UpdateUserDto {
   @IsEmail()
   @IsOptional()
-  email: string;
+  email?: string;
 
   @IsOptional()
   @IsString()
-  name: string;
+  name?: string;
 
   @IsOptional()
   @IsString()
-  about: string;
+  about?: string;
 
   @IsOptional()
   @IsDateString()
-  birthdate: Date;
+  birthdate?: Date;
 
-  // @IsOptional()
-  // @IsString()
-  // city: string;
+  @IsOptional()
+  @IsUUID()
+  cityId?: string | null;
 
   @IsOptional()
   @IsEnum(Gender)
-  gender: Gender;
+  gender?: Gender;
 
   @IsOptional()
   @IsString()
-  avatar: string;
+  avatar?: string;
 }
