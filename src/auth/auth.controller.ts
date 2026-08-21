@@ -26,7 +26,15 @@ import {
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { Role } from '../shared/enums/role.enum';
+import { ApiTags } from '@nestjs/swagger';
+import {
+  ApiAuthLogin,
+  ApiAuthLogout,
+  ApiAuthRefresh,
+  ApiAuthRegister,
+} from './auth.swagger';
 
+@ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -37,6 +45,7 @@ export class AuthController {
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
+  @ApiAuthLogin()
   async login(
     @Body() loginDto: LoginDto,
     @Res({ passthrough: true }) res: Response,
@@ -50,6 +59,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(RefreshTokenGuard, RolesGuard)
   @Roles([Role.ADMIN, Role.USER])
+  @ApiAuthRefresh()
   async refresh(
     @Req() req: RequestWithRefreshToken,
     @Res({ passthrough: true }) res: Response,
@@ -67,6 +77,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(AccessTokenGuard, RolesGuard)
   @Roles([Role.USER, Role.ADMIN])
+  @ApiAuthLogout()
   async logout(
     @Req() req: RequestWithUser,
     @Res({ passthrough: true }) res: Response,
@@ -77,6 +88,7 @@ export class AuthController {
   }
 
   @Post('register')
+  @ApiAuthRegister()
   async register(
     @Body() dto: RegisterDto,
     @Res({ passthrough: true }) res: Response,
