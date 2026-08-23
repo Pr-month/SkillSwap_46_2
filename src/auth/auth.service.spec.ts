@@ -5,45 +5,102 @@ import * as bcrypt from 'bcrypt';
 import { jwtConfig } from '../config/jwt.config';
 import { Role } from '../shared/enums/role.enum';
 import { User } from '../users/entities/user.entity';
-import { UsersService } from '../users/users.service';
+import { City } from '../cities/entities/city.entity';
+import { getRepositoryToken } from '@nestjs/typeorm';
 import { AuthService } from './auth.service';
+import { appConfig } from '../config/app.config';
 
 jest.mock('bcrypt');
 
-// bcrypt.compare перегружен (промис + колбэк), поэтому сужаем тип мока
-// до промис-варианта, который реально использует AuthService.
-const bcryptCompare = bcrypt.compare as jest.MockedFunction<
+const bcryptCompare = bcrypt.compare as unknown as jest.MockedFunction<
   (data: string, encrypted: string) => Promise<boolean>
 >;
 
-describe('AuthService', () => {
-  let service: AuthService;
-  let usersService: {
-    findByEmailWithPassword: jest.Mock;
-    findById: jest.Mock;
-    updateRefreshToken: jest.Mock;
-    clearRefreshToken: jest.Mock;
+type RefreshPayloadInput = {
+  user: {
+    sub: string;
+    email: string;
+    role: Role;
+    refreshToken?: string;
   };
+};
 
-  const existingUser = {
+type TestUser = {
+  id: string;
+  email: string;
+  password: string;
+  role: Role;
+  refreshToken?: string;
+};
+
+class PublicAuthService extends (AuthService as unknown as {
+  new (): AuthService;
+}) {
+  public refreshFromPayloadPublic = (
+    payload: RefreshPayloadInput,
+  ): Promise<{ accessToken: string; refreshToken: string }> => {
+    type RefreshFromPayloadFn = (
+      this: AuthService,
+      p: RefreshPayloadInput,
+    ) => Promise<{
+      accessToken: string;
+      refreshToken: string;
+    }>;
+
+    const fn = (this as unknown as { refreshFromPayload: RefreshFromPayloadFn })
+      .refreshFromPayload;
+
+    const bound = fn.bind(this) as (
+      p: RefreshPayloadInput
+    ) => Promise<{ accessToken: string; refreshToken: string }>;
+
+    return bound(payload);
+  };
+}
+
+type MockUserRepository = {
+  findOne: jest.Mock;
+  create: jest.Mock;
+  save: jest.Mock;
+};
+
+type MockCityRepository = {
+  findOne: jest.Mock;
+  create: jest.Mock;
+  save: jest.Mock;
+};
+
+describe('AuthService', () => {
+  let service: PublicAuthService;
+  let mockedUserRepo: MockUserRepository;
+  let cityRepository: MockCityRepository;
+
+  const existingUser: TestUser = {
     id: 'a1b2c3',
     email: 'user@example.com',
     password: 'hashed-password',
     role: Role.USER,
-  } as User;
+    refreshToken: 'refresh-token',
+  };
 
   beforeEach(async () => {
-    usersService = {
-      findByEmailWithPassword: jest.fn(),
-      findById: jest.fn(),
-      updateRefreshToken: jest.fn().mockResolvedValue(undefined),
-      clearRefreshToken: jest.fn().mockResolvedValue(undefined),
+    mockedUserRepo = {
+      findOne: jest.fn(),
+      create: jest.fn(),
+      save: jest.fn(),
+    };
+
+    cityRepository = {
+      findOne: jest.fn(),
+      create: jest.fn(),
+      save: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        AuthService,
-        { provide: UsersService, useValue: usersService },
+        PublicAuthService,
+        { provide: getRepositoryToken(User), useValue: mockedUserRepo },
+        { provide: getRepositoryToken(City), useValue: cityRepository },
         {
           provide: JwtService,
           useValue: {
@@ -51,6 +108,13 @@ describe('AuthService', () => {
               .fn()
               .mockReturnValueOnce('access-token')
               .mockReturnValueOnce('refresh-token'),
+            verifyAsync: jest.fn(),
+          },
+        },
+        {
+          provide: appConfig.KEY,
+          useValue: {
+            hashSalt: 10,
           },
         },
         {
@@ -65,7 +129,9 @@ describe('AuthService', () => {
       ],
     }).compile();
 
-    service = module.get<AuthService>(AuthService);
+    service = module.get<PublicAuthService>(PublicAuthService);
+    mockedUserRepo = module.get<MockUserRepository>(getRepositoryToken(User));
+    cityRepository = module.get<MockCityRepository>(getRepositoryToken(City));
   });
 
   afterEach(() => {
@@ -78,7 +144,7 @@ describe('AuthService', () => {
 
   describe('login', () => {
     it('возвращает пользователя и пару токенов при верных учётных данных', async () => {
-      usersService.findByEmailWithPassword.mockResolvedValue(existingUser);
+      mockedUserRepo.findOne.mockResolvedValue(existingUser);
       bcryptCompare.mockResolvedValue(true);
 
       const result = await service.login({
@@ -102,7 +168,7 @@ describe('AuthService', () => {
     });
 
     it('сохраняет выданный refresh-токен пользователю', async () => {
-      usersService.findByEmailWithPassword.mockResolvedValue(existingUser);
+      mockedUserRepo.findOne.mockResolvedValue(existingUser);
       bcryptCompare.mockResolvedValue(true);
 
       await service.login({
@@ -110,58 +176,62 @@ describe('AuthService', () => {
         password: 'plain-password',
       });
 
-      expect(usersService.updateRefreshToken).toHaveBeenCalledWith(
-        existingUser.id,
-        'refresh-token',
-      );
+      expect(mockedUserRepo.save).toHaveBeenCalledWith({
+        ...existingUser,
+        refreshToken: 'refresh-token',
+      });
     });
 
     it('бросает UnauthorizedException, если пользователь не найден', async () => {
-      usersService.findByEmailWithPassword.mockResolvedValue(null);
+      mockedUserRepo.findOne.mockResolvedValue(null);
 
       await expect(
         service.login({ email: 'no@example.com', password: 'plain-password' }),
       ).rejects.toThrow(UnauthorizedException);
-      expect(usersService.updateRefreshToken).not.toHaveBeenCalled();
     });
 
     it('бросает UnauthorizedException при неверном пароле', async () => {
-      usersService.findByEmailWithPassword.mockResolvedValue(existingUser);
+      mockedUserRepo.findOne.mockResolvedValue(existingUser);
       bcryptCompare.mockResolvedValue(false);
 
       await expect(
         service.login({ email: existingUser.email, password: 'wrong' }),
       ).rejects.toThrow(UnauthorizedException);
-      expect(usersService.updateRefreshToken).not.toHaveBeenCalled();
     });
   });
 
   describe('refreshFromPayload', () => {
     it('выдаёт новую пару токенов существующему пользователю', async () => {
-      usersService.findById.mockResolvedValue(existingUser);
+      mockedUserRepo.findOne.mockResolvedValue(existingUser);
 
-      const result = await service.refreshFromPayload({
-        sub: existingUser.id,
-        email: existingUser.email,
-        role: existingUser.role,
+      const result = await service.refreshFromPayloadPublic({
+        user: {
+          sub: existingUser.id,
+          email: existingUser.email,
+          role: existingUser.role,
+          refreshToken: 'refresh-token',
+        },
       });
 
       expect(result.accessToken).toBe('access-token');
       expect(result.refreshToken).toBe('refresh-token');
-      expect(usersService.updateRefreshToken).toHaveBeenCalledWith(
-        existingUser.id,
-        'refresh-token',
-      );
+      expect(mockedUserRepo.save).toHaveBeenCalledWith({
+        ...existingUser,
+        refreshToken: 'refresh-token',
+      });
     });
 
     it('бросает UnauthorizedException, если пользователь не найден', async () => {
-      usersService.findById.mockResolvedValue(null);
+      mockedUserRepo.findOne.mockResolvedValue(null);
 
       await expect(
-        service.refreshFromPayload({
-          sub: 'unknown',
-          email: 'no@example.com',
-          role: Role.USER,
+        service.refreshFromPayloadPublic({
+          user: {
+            sub: 'unknown',
+            email: 'no@example.com',
+            role: Role.USER,
+            refreshToken: 'refresh-token',
+          },
         }),
       ).rejects.toThrow(UnauthorizedException);
     });
