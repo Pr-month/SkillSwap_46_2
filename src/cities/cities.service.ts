@@ -30,7 +30,15 @@ export class CitiesService {
       throw new NotFoundException(`Город с id "${id}" не найден`);
     }
 
-    if (dto.name !== undefined) {
+    if (dto.name !== undefined && dto.name !== city.name) {
+      const existing = await this.cityRepository.findOne({
+        where: { name: dto.name },
+      });
+
+      if (existing) {
+        throw new ConflictException(`Город "${dto.name}" уже существует`);
+      }
+
       city.name = dto.name;
     }
 
