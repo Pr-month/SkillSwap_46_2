@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { Repository, ILike } from 'typeorm';
 import { City } from './entities/city.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -24,6 +24,14 @@ export class CitiesService {
   }
 
   async create(dto: CreateCityDto): Promise<City> {
+    const existing = await this.cityRepository.findOne({
+      where: { name: dto.name },
+    });
+
+    if (existing) {
+      throw new ConflictException(`Город "${dto.name}" уже существует`);
+    }
+
     const city = this.cityRepository.create({
       name: dto.name,
       region: dto.region,

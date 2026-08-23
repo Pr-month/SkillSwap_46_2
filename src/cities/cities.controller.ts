@@ -1,4 +1,4 @@
-import { Controller, Get, Query, Post, UseGuards } from '@nestjs/common';
+import { Controller, Get, Query, Post, UseGuards, Body } from '@nestjs/common';
 import { CitiesService } from './cities.service';
 import { CityShort } from './cities.types';
 import { AccessTokenGuard } from 'src/auth/guards/accessToken.guard';
