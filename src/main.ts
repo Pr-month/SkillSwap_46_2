@@ -4,7 +4,7 @@ import { NestFactory, Reflector } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AllExceptionFilter } from './common/filters/all-exception.filter';
-import * as cookieParser from 'cookie-parser';
+import cookieParser from 'cookie-parser';
 import { appConfig } from './config/app.config';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
