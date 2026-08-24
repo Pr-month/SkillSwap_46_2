@@ -25,11 +25,13 @@ export class CitiesService {
 
   async create(dto: CreateCityDto): Promise<City> {
     const existing = await this.cityRepository.findOne({
-      where: { name: dto.name },
+      where: { name: dto.name, region: dto.region },
     });
 
     if (existing) {
-      throw new ConflictException(`Город "${dto.name}" уже существует`);
+      throw new ConflictException(
+        `Город "${dto.name}" в регионе "${dto.region}" уже существует`,
+      );
     }
 
     const city = this.cityRepository.create({
