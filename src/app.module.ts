@@ -14,6 +14,7 @@ import { FilesModule } from './files/files.module';
 import { User } from './users/entities/user.entity';
 import { CitiesModule } from './cities/cities.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { RequestsModule } from './requests/requests.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { NotificationsModule } from './notifications/notifications.module';
     FilesModule,
     CitiesModule,
     NotificationsModule,
+    RequestsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

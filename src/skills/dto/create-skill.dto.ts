@@ -1,9 +1,15 @@
-import { IsArray, IsOptional, IsString, MaxLength } from 'class-validator';
+import {
+  IsArray,
+  IsOptional,
+  IsString,
+  IsUUID,
+  MaxLength,
+} from 'class-validator';
 
 export class CreateSkillDto {
   @IsString()
   @MaxLength(250)
-  title: string;
+  title!: string;
 
   @IsOptional()
   @IsString()
@@ -13,4 +19,7 @@ export class CreateSkillDto {
   @IsArray()
   @IsString({ each: true })
   images?: string[];
+
+  @IsUUID()
+  categoryId!: string;
 }
