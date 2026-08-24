@@ -2,7 +2,19 @@ import { registerAs, ConfigType } from '@nestjs/config';
 import { DataSource, DataSourceOptions } from 'typeorm';
 import * as path from 'path';
 import * as dotenv from 'dotenv';
-dotenv.config();
+
+/**
+ * Возвращает путь к файлу переменных окружения в зависимости от окружения.
+ * - Для тестов (NODE_ENV=test) используется тестовая БД из .env.test.local
+ * - Для остальных окружений — реальная БД из .env
+ */
+export function getEnvFilePath(): string {
+  return process.env.NODE_ENV === 'test'
+    ? '.env.test.local'
+    : '.env';
+}
+
+dotenv.config({ path: getEnvFilePath() });
 
 export const dbConfig = registerAs(
   'DB_CONFIG',
