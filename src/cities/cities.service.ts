@@ -29,22 +29,28 @@ export class CitiesService {
     if (!city) {
       throw new NotFoundException(`Город с id "${id}" не найден`);
     }
+    // Ошибки потому что dto берется из create-city.dto.ts, а это в другой веткке
+    // Сначала merge ветки create - после merge этой ветки
+    const nextName = dto.name ?? city.name;
+    const nextRegion = dto.region ?? city.region;
 
-    if (dto.name !== undefined && dto.name !== city.name) {
+    const nameOrRegionChanged =
+      nextName !== city.name || nextRegion !== city.region;
+
+    if (nameOrRegionChanged) {
       const existing = await this.cityRepository.findOne({
-        where: { name: dto.name },
+        where: { name: nextName, region: nextRegion },
       });
 
       if (existing) {
-        throw new ConflictException(`Город "${dto.name}" уже существует`);
+        throw new ConflictException(
+          `Город "${nextName}" в регионе "${nextRegion}" уже существует`,
+        );
       }
-
-      city.name = dto.name;
     }
 
-    if (dto.region !== undefined) {
-      city.region = dto.region;
-    }
+    city.name = nextName;
+    city.region = nextRegion;
 
     return this.cityRepository.save(city);
   }
