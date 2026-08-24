@@ -136,10 +136,10 @@ export class AuthService {
           email: user.email,
           city: user.city
             ? {
-              id: user.city.id,
-              name: user.city.name,
-              region: user.city.region,
-            }
+                id: user.city.id,
+                name: user.city.name,
+                region: user.city.region,
+              }
             : null,
           about: user.about,
           birthdate: user.birthdate

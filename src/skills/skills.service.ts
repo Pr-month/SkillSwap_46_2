@@ -12,20 +12,35 @@ import { CreateSkillDto } from './dto/create-skill.dto';
 import { UpdateSkillDto } from './dto/update-skill.dto';
 import { UsersService } from '../users/users.service';
 import { User } from 'src/users/entities/user.entity';
+import { Category } from '../categories/entities/category.entity';
 
 @Injectable()
 export class SkillsService {
   constructor(
     @InjectRepository(Skill)
     private readonly skillsRepository: Repository<Skill>,
+    @InjectRepository(Category)
+    private readonly categoriesRepository: Repository<Category>,
     private readonly usersService: UsersService,
   ) {}
 
-  create(ownerId: string, createSkillDto: CreateSkillDto) {
-    const skill = this.skillsRepository.create({
-      ...createSkillDto,
-      user: { id: ownerId } as User,
+  async create(ownerId: string, createSkillDto: CreateSkillDto) {
+    const { categoryId, ...skillData } = createSkillDto;
+
+    const category = await this.categoriesRepository.findOne({
+      where: { id: categoryId },
     });
+
+    if (!category) {
+      throw new NotFoundException(`Категория с id ${categoryId} не найдена`);
+    }
+
+    const skill = this.skillsRepository.create({
+      ...skillData,
+      user: { id: ownerId } as User,
+      category,
+    });
+
     return this.skillsRepository.save(skill);
   }
 
@@ -73,9 +88,26 @@ export class SkillsService {
       throw new ForbiddenException('Вы не можете редактировать чужой навык');
     }
 
+    const { categoryId, ...skillData } = updateSkillDto;
+
+    let category: Category | undefined;
+
+    if (categoryId) {
+      const foundCategory = await this.categoriesRepository.findOne({
+        where: { id: categoryId },
+      });
+
+      if (!foundCategory) {
+        throw new NotFoundException(`Категория с id ${categoryId} не найдена`);
+      }
+
+      category = foundCategory;
+    }
+
     const updatedSkill = await this.skillsRepository.preload({
       id,
-      ...updateSkillDto,
+      ...skillData,
+      ...(category ? { category } : {}),
     });
 
     if (!updatedSkill) {

@@ -28,11 +28,11 @@ export class Skill {
   user: User;
 
   @ManyToOne(() => Category, (category) => category.skills, {
-    nullable: true,
-    onDelete: 'SET NULL',
+    nullable: false,
+    onDelete: 'RESTRICT',
   })
   @JoinColumn({ name: 'category_id' })
-  category: Category | null;
+  category!: Category;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
