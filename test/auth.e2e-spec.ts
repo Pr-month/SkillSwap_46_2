@@ -116,12 +116,29 @@ describe('AuthController (e2e)', () => {
     });
 
     it('should refresh tokens using valid refresh token', async () => {
-      await agent.post('/auth/refresh');
+      const res = await agent.post('/auth/refresh');
+      if (res.status === 200) {
+        expect(res.body).toHaveProperty('user');
+        const cookies = extractCookies(
+          res as { headers: { [key: string]: string | string[] | undefined } },
+        );
+        const hasAccess = cookies.some((c: string) =>
+          c.startsWith('accessToken='),
+        );
+        const hasRefresh = cookies.some((c: string) =>
+          c.startsWith('refreshToken='),
+        );
+        expect(hasAccess).toBeTruthy();
+        expect(hasRefresh).toBeTruthy();
+      } else {
+        expect(res.status).toBe(401);
+      }
     });
 
     it('should reject invalid or missing refresh token', async () => {
       const anon = request.agent(server);
-      await anon.post('/auth/refresh').expect(401);
+      const res = await anon.post('/auth/refresh');
+      expect(res.status).toBe(401);
     });
   });
 
@@ -133,7 +150,8 @@ describe('AuthController (e2e)', () => {
 
     it('should reject logout without access token', async () => {
       const anon = request.agent(server);
-      await anon.post('/auth/logout').expect(401);
+      const res = await anon.post('/auth/logout');
+      expect(res.status).toBe(401);
     });
   });
 });

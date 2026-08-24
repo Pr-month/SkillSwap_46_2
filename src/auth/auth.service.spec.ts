@@ -1,4 +1,8 @@
-import { UnauthorizedException } from '@nestjs/common';
+import {
+  UnauthorizedException,
+  BadRequestException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
 import * as bcrypt from 'bcrypt';
@@ -9,6 +13,7 @@ import { City } from '../cities/entities/city.entity';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { AuthService } from './auth.service';
 import { appConfig } from '../config/app.config';
+import { RegisterDto } from './dto/register.dto';
 
 jest.mock('bcrypt');
 
@@ -51,7 +56,7 @@ class PublicAuthService extends (AuthService as unknown as {
       .refreshFromPayload;
 
     const bound = fn.bind(this) as (
-      p: RefreshPayloadInput
+      p: RefreshPayloadInput,
     ) => Promise<{ accessToken: string; refreshToken: string }>;
 
     return bound(payload);
@@ -69,6 +74,14 @@ type MockCityRepository = {
   create: jest.Mock;
   save: jest.Mock;
 };
+
+class DuplicationKeyError extends Error {
+  public code: string = '23505';
+  constructor() {
+    super('duplicate key');
+    Object.setPrototypeOf(this, DuplicationKeyError.prototype);
+  }
+}
 
 describe('AuthService', () => {
   let service: PublicAuthService;
@@ -234,6 +247,153 @@ describe('AuthService', () => {
           },
         }),
       ).rejects.toThrow(UnauthorizedException);
+    });
+
+    it('бросает UnauthorizedException при не совпадающем refreshToken', async () => {
+      mockedUserRepo.findOne.mockResolvedValue(existingUser);
+      await expect(
+        service.refreshFromPayloadPublic({
+          user: {
+            sub: existingUser.id,
+            email: existingUser.email,
+            role: existingUser.role,
+            refreshToken: 'invalid-refresh-token',
+          },
+        }),
+      ).rejects.toThrow(UnauthorizedException);
+    });
+  });
+
+  describe('register', () => {
+    it('успешная регистрация нового пользователя', async () => {
+      const dto: RegisterDto = {
+        email: 'newuser@example.com',
+        password: 'password',
+        cityId: 'c1',
+        about: 'about me',
+        name: 'New User',
+        birthdate: '1990-01-01',
+      };
+
+      const cityObj = {
+        id: dto.cityId,
+        name: 'City',
+        region: 'Region',
+      } as City;
+
+      mockedUserRepo.findOne.mockResolvedValue(null);
+      cityRepository.findOne.mockResolvedValue(cityObj);
+
+      (bcrypt.hash as jest.Mock).mockResolvedValue('hashed-password');
+      mockedUserRepo.create.mockReturnValue({
+        email: dto.email,
+        password: 'hashed-password',
+        city: cityObj,
+        about: dto.about,
+        name: dto.name,
+        birthdate: new Date(dto.birthdate as string),
+        role: Role.USER,
+      } as unknown as User);
+
+      mockedUserRepo.save
+        .mockResolvedValueOnce({
+          id: 'new-id',
+          email: dto.email,
+          city: cityObj,
+          about: dto.about,
+          name: dto.name,
+          birthdate: new Date(dto.birthdate as string),
+          role: Role.USER,
+        } as unknown as User)
+        .mockResolvedValueOnce({
+          id: 'new-id',
+          email: dto.email,
+          city: cityObj,
+          about: dto.about,
+          name: dto.name,
+          birthdate: new Date(dto.birthdate as string),
+          role: Role.USER,
+        } as unknown as User);
+
+      const result = await service.register(dto);
+
+      expect(result.user).toBeDefined();
+      expect(result.user.id).toBe('new-id');
+      expect(result.accessToken).toBe('access-token');
+      expect(result.refreshToken).toBe('refresh-token');
+      expect(mockedUserRepo.save).toHaveBeenCalledWith(
+        expect.objectContaining({ refreshToken: 'refresh-token' }),
+      );
+    });
+
+    it('бросает BadRequestException, если город по указанному id не найден', async () => {
+      const dto: RegisterDto = {
+        email: 'user2@example.com',
+        password: 'password',
+        cityId: 'missing-city',
+        about: 'about me',
+        name: 'User Two',
+        birthdate: '1995-05-05',
+      };
+
+      mockedUserRepo.findOne.mockResolvedValue(null);
+      cityRepository.findOne.mockResolvedValue(null);
+
+      await expect(service.register(dto)).rejects.toThrow(BadRequestException);
+    });
+
+    it('бросает InternalServerErrorException при дублировании email (23505)', async () => {
+      const dto: RegisterDto = {
+        email: 'existing@example.com',
+        password: 'password',
+        cityId: 'c1',
+        about: 'about me',
+        name: 'Existing User',
+        birthdate: '1992-02-02',
+      };
+
+      const cityObj = {
+        id: dto.cityId,
+        name: 'City',
+        region: 'Region',
+      } as City;
+
+      mockedUserRepo.findOne.mockResolvedValue(null);
+      cityRepository.findOne.mockResolvedValue(cityObj);
+
+      (bcrypt.hash as jest.Mock).mockResolvedValue('hashed-password');
+      mockedUserRepo.create.mockReturnValue({
+        email: dto.email,
+        password: 'hashed-password',
+        city: cityObj,
+        about: dto.about,
+        name: dto.name,
+        birthdate: new Date(dto.birthdate as string),
+        role: Role.USER,
+      } as unknown as User);
+
+      const dupError = new DuplicationKeyError();
+      mockedUserRepo.save.mockRejectedValue(dupError);
+
+      await expect(service.register(dto)).rejects.toThrow(
+        InternalServerErrorException,
+      );
+    });
+  });
+
+  describe('deleteRefreshToken', () => {
+    it('устанавливает refreshToken=null у найденного пользователя', async () => {
+      mockedUserRepo.findOne.mockResolvedValue({
+        ...existingUser,
+        refreshToken: 'refresh-token',
+      } as unknown as User);
+
+      await service.deleteRefreshToken(existingUser.id);
+
+      expect(mockedUserRepo.save).toHaveBeenCalledWith({
+        ...existingUser,
+        refreshToken: null,
+      });
     });
   });
 });
