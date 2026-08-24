@@ -1,26 +1,24 @@
 import { Injectable } from '@nestjs/common';
-import { CreateCityDto } from './dto/create-city.dto';
-import { UpdateCityDto } from './dto/update-city.dto';
+import { Repository, ILike } from 'typeorm';
+import { City } from './entities/city.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { CityShort } from './cities.types';
+
+const SEARCH_RESULTS_LIMIT = 10;
 
 @Injectable()
 export class CitiesService {
-  create(createCityDto: CreateCityDto) {
-    return 'This action adds a new city';
-  }
+  constructor(
+    @InjectRepository(City)
+    private readonly cityRepository: Repository<City>,
+  ) {}
 
-  findAll() {
-    return `This action returns all cities`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} city`;
-  }
-
-  update(id: number, updateCityDto: UpdateCityDto) {
-    return `This action updates a #${id} city`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} city`;
+  async search(search?: string): Promise<CityShort[]> {
+    return this.cityRepository.find({
+      select: ['id', 'name', 'region'],
+      where: search ? { name: ILike(`%${search}%`) } : {},
+      order: { name: 'ASC' },
+      take: SEARCH_RESULTS_LIMIT,
+    });
   }
 }

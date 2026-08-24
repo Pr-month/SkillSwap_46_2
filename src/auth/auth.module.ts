@@ -13,12 +13,13 @@ import { jwtConfig } from '../config/jwt.config';
 import { UsersModule } from '../users/users.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from '../users/entities/user.entity';
+import { City } from '../cities/entities/city.entity';
 
 @Module({
   imports: [
     PassportModule,
     UsersModule,
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([User, City]),
     JwtModule.registerAsync({
       inject: [jwtConfig.KEY],
       useFactory: (config: ConfigType<typeof jwtConfig>) => ({
