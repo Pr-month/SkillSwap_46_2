@@ -18,7 +18,7 @@ export const seedSkillsData = [
     title: 'Backend-разработка на NestJS',
     description: 'Основы создания серверных приложений на NestJS и TypeScript.',
     images: [],
-    ownerId: 'b2c3d4e5-f6a7-48b9-0c1d-2e3f4a5b6c7d',
+    ownerId: 'b2c3d4e5-f6a7-48b9-8c1d-2e3f4a5b6c7d',
     categoryName: 'Backend',
   },
   {
@@ -26,7 +26,7 @@ export const seedSkillsData = [
     description:
       'Базовые аккорды, постановка рук и простые упражнения для начинающих.',
     images: [],
-    ownerId: 'b2c3d4e5-f6a7-48b9-0c1d-2e3f4a5b6c7d',
+    ownerId: 'b2c3d4e5-f6a7-48b9-8c1d-2e3f4a5b6c7d',
     categoryName: 'Гитара',
   },
 ];
