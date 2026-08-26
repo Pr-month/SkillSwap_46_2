@@ -1,4 +1,7 @@
 import {
+  Delete,
+  HttpCode,
+  HttpStatus,
   Body,
   Controller,
   Get,
@@ -26,6 +29,14 @@ export class CitiesController {
   @Get()
   async findAll(@Query('search') search?: string): Promise<CityShort[]> {
     return this.citiesService.search(search);
+  }
+
+  @Delete(':id')
+  @UseGuards(AccessTokenGuard, RolesGuard)
+  @Roles([Role.ADMIN])
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async remove(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
+    await this.citiesService.remove(id);
   }
 
   @Patch(':id')

@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -26,6 +27,25 @@ export class CitiesService {
       order: { name: 'ASC' },
       take: SEARCH_RESULTS_LIMIT,
     });
+  }
+
+  async remove(id: string): Promise<void> {
+    const city = await this.cityRepository.findOne({
+      where: { id },
+      relations: { users: true },
+    });
+
+    if (!city) {
+      throw new NotFoundException(`Город с id "${id}" не найден`);
+    }
+
+    if (city.users.length > 0) {
+      throw new BadRequestException(
+        'Нельзя удалить город, к которому привязаны пользователи',
+      );
+    }
+
+    await this.cityRepository.delete(id);
   }
 
   async update(id: string, dto: UpdateCityDto): Promise<City> {
