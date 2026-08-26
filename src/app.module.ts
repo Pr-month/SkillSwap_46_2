@@ -11,8 +11,8 @@ import { UsersModule } from './users/users.module';
 import { SkillsModule } from './skills/skills.module';
 import { CategoriesModule } from './categories/categories.module';
 import { FilesModule } from './files/files.module';
-import { User } from './users/entities/user.entity';
 import { CitiesModule } from './cities/cities.module';
+import { NotificationsModule } from './notifications/notifications.module';
 import { RequestsModule } from './requests/requests.module';
 
 @Module({
@@ -33,6 +33,7 @@ import { RequestsModule } from './requests/requests.module';
     CategoriesModule,
     FilesModule,
     CitiesModule,
+    NotificationsModule,
     RequestsModule,
   ],
   controllers: [AppController],

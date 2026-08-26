@@ -4,6 +4,7 @@ import { Role } from '../shared/enums/role.enum';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { jwtConfig } from '../config/jwt.config';
+import { RequestWithRefreshToken, RequestWithUser } from './auth.types';
 
 describe('AuthController', () => {
   let controller: AuthController;
@@ -120,7 +121,9 @@ describe('AuthController', () => {
 
   describe('refresh', () => {
     it('обновляет обе куки и возвращает { user }', async () => {
-      const req = { user: { sub: 'a1b2c3' } } as any;
+      const req = {
+        user: { sub: 'a1b2c3' },
+      } as unknown as RequestWithRefreshToken;
       const { res, cookie } = createResponse();
 
       const result = await controller.refresh(req, res);
@@ -133,7 +136,7 @@ describe('AuthController', () => {
 
   describe('logout', () => {
     it('чистит обе куки и удаляет refreshToken из БД', async () => {
-      const req = { user: { sub: 'a1b2c3' } } as any;
+      const req = { user: { sub: 'a1b2c3' } } as unknown as RequestWithUser;
       const { res, clearCookie } = createResponse();
 
       const result = await controller.logout(req, res);
