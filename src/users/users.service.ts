@@ -10,12 +10,15 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { User } from './entities/user.entity';
 import { FindUsersDto } from './dto/find-users.dto';
+import { City } from '../cities/entities/city.entity';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(City)
+    private readonly cityRepository: Repository<City>,
   ) {}
 
   async findAll(dto: FindUsersDto) {
@@ -77,13 +80,32 @@ export class UsersService {
   }
 
   async update(id: string, dto: UpdateUserDto): Promise<User> {
-    const user = await this.userRepository.findOne({ where: { id } });
+    const user = await this.userRepository.findOne({
+      where: { id },
+      relations: { city: true },
+    });
 
     if (!user) {
       throw new NotFoundException(`Пользователь с id ${id} не найден`);
     }
 
-    this.userRepository.merge(user, dto);
+    const { cityId, ...rest } = dto;
+
+    if (cityId !== undefined) {
+      if (cityId === null) {
+        user.city = null;
+      } else {
+        const city = await this.cityRepository.findOne({
+          where: { id: cityId },
+        });
+        if (!city) {
+          throw new BadRequestException(`Город с id ${cityId} не найден`);
+        }
+        user.city = city;
+      }
+    }
+
+    this.userRepository.merge(user, rest);
     await this.userRepository.save(user);
 
     return user;
