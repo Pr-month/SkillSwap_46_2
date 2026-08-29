@@ -22,7 +22,12 @@
     "seed:admin": "ts-node src/scripts/seed-admin.ts",
     "seed:categories": "ts-node src/scripts/seed-categories.ts",
     "seed:skills": "ts-node src/scripts/seed-skills.ts",
-    "seed:cities": "ts-node src/scripts/seed-cities.ts"
+    "seed:cities": "ts-node src/scripts/seed-cities.ts",
+    "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js -d src/config/typeorm-cli.config.ts",
+    "migration:generate": "npm run typeorm -- migration:generate",
+    "migration:create": "npm run typeorm -- migration:create",
+    "migration:run": "npm run typeorm -- migration:run",
+    "migration:revert": "npm run typeorm -- migration:revert"
   },
   "dependencies": {
     "@nestjs/common": "^11.2.1",
