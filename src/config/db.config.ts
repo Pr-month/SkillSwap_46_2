@@ -9,9 +9,7 @@ import * as dotenv from 'dotenv';
  * - Для остальных окружений — реальная БД из .env
  */
 export function getEnvFilePath(): string {
-  return process.env.NODE_ENV === 'test'
-    ? '.env.test.local'
-    : '.env';
+  return process.env.NODE_ENV === 'test' ? '.env.test.local' : '.env';
 }
 
 dotenv.config({ path: getEnvFilePath() });
@@ -28,7 +26,9 @@ export const dbConfig = registerAs(
       database: process.env.DB_NAME,
       entities: [path.join(__dirname, '..', '**', '*.entity{.ts,.js}')],
       migrations: [path.join(__dirname, '..', 'migrations', '*{.ts,.js}')],
-      synchronize: true,
+      synchronize: process.env.DB_SYNC === 'true',
+      ssl:
+        process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
     }) as DataSourceOptions,
 );
 
