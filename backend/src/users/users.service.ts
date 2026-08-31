@@ -4,13 +4,15 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { User } from './entities/user.entity';
 import { FindUsersDto } from './dto/find-users.dto';
 import { City } from '../cities/entities/city.entity';
+import { Category } from '../categories/entities/category.entity';
+import { Not } from 'typeorm/browser';
 
 @Injectable()
 export class UsersService {
@@ -19,6 +21,8 @@ export class UsersService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(City)
     private readonly cityRepository: Repository<City>,
+    @InjectRepository(Category)
+    private readonly categoryRepository: Repository<Category>,
   ) {}
 
   async findAll(dto: FindUsersDto) {
@@ -156,5 +160,29 @@ export class UsersService {
 
   async saveFavorites(user: User): Promise<void> {
     await this.userRepository.save(user);
+  }
+
+  async updateWantToLearn(
+    userId: string,
+    categoryIds: string[],
+  ): Promise<Category[]> {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+
+    if ( !user ) {
+      throw new NotFoundException(`Пользователь с id ${userId} не найден`);
+    }
+
+    const categories = await this.categoryRepository.findBy({
+      id: In(categoryIds),
+    });
+
+    if ( categories.length !== categoryIds.length ) {
+      throw new BadRequestException('Одна или несколько категорий не найдены');
+    }
+
+    user.wantToLearn = categories;
+    await this.userRepository.save(user);
+
+    return categories;
   }
 }
