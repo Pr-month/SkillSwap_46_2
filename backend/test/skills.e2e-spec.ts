@@ -148,6 +148,10 @@ describe('SkillsController (e2e)', () => {
       const found = body.data.some((skill) => skill.title === title);
       expect(found).toBe(true);
     });
+
+    it('возвращает 404, если запрашиваемая страница больше totalPages', async () => {
+      await request(server).get('/skills').query({ page: 99999 }).expect(404);
+    });
   });
 
   describe('POST /skills', () => {
