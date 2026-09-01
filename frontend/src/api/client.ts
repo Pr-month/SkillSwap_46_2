@@ -39,6 +39,7 @@ export async function request<T>(
     const { url: interceptedUrl, config: interceptedConfig } =
       await interceptors.applyRequestInterceptors(addBaseUrl(url), {
         ...fetchConfig,
+        credentials: "include",
         headers: {
           ...(!isFormData && { "Content-Type": "application/json" }),
           ...fetchConfig.headers,
