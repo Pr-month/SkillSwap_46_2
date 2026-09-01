@@ -2,10 +2,26 @@ import { USE_MOCKS } from "../config/apiConfig";
 import { request } from "./client";
 import type { TId, ISkillsCategory, ISkillsSubcategory } from "../utils/types";
 
-interface ApiResponse<T> {
-  status: boolean;
-  data: T;
+// Так реально выглядит категория в ответе бэкенда:
+// голый объект, без обёртки {status, data}, а подкатегории лежат в "children".
+interface IBackendCategory {
+  id: string;
+  name: string;
+  children?: IBackendCategory[];
 }
+
+// Приводим категорию бэкенда к форме, которую ждёт остальной фронтенд
+// (ISkillsCategory с полем subcategories, где у каждой подкатегории
+// есть ссылка на родителя skillCategoryId).
+const mapCategory = (category: IBackendCategory): ISkillsCategory => ({
+  id: category.id,
+  name: category.name,
+  subcategories: (category.children ?? []).map((child) => ({
+    id: child.id,
+    name: child.name,
+    skillCategoryId: category.id,
+  })),
+});
 
 export const getCategories = (): Promise<ISkillsCategory[]> => {
   if (USE_MOCKS) {
@@ -14,8 +30,8 @@ export const getCategories = (): Promise<ISkillsCategory[]> => {
       .then((response) => response.data);
   }
 
-  return request<ApiResponse<ISkillsCategory[]>>("/categories").then(
-    (response: { status: boolean; data: ISkillsCategory[] }) => response.data,
+  return request<IBackendCategory[]>("/categories").then((categories) =>
+    categories.map(mapCategory),
   );
 };
 
@@ -26,9 +42,10 @@ export const getSubCategories = (): Promise<ISkillsSubcategory[]> => {
       .then((response) => response.data);
   }
 
-  return request<ApiResponse<ISkillsCategory[]>>("/categories").then(
-    (response: { status: boolean; data: ISkillsCategory[] }) =>
-      response.data.flatMap((category) => category.subcategories),
+  return request<IBackendCategory[]>("/categories").then((categories) =>
+    categories.flatMap(
+      (category) => mapCategory(category).subcategories,
+    ),
   );
 };
 
@@ -44,7 +61,5 @@ export const getCategoryById = (id: TId): Promise<ISkillsCategory> => {
       );
   }
 
-  return request<ApiResponse<ISkillsCategory>>(`/categories/${id}`).then(
-    (response: { status: boolean; data: ISkillsCategory }) => response.data,
-  );
+  return request<IBackendCategory>(`/categories/${id}`).then(mapCategory);
 };
