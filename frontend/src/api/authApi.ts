@@ -42,7 +42,6 @@ export const registerUser = async (
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
-  tokenService.set(resp.access_token);
   return resp;
 };
 
@@ -69,7 +68,6 @@ export const loginUser = async (
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
-  tokenService.set(resp.access_token);
   return resp;
 };
 
@@ -85,18 +83,12 @@ export const checkUser = async (data: TLoginUserData): Promise<void> => {
 
 // GET /auth/profile
 export const getProfile = async (): Promise<IUserProfile> => {
-  const token = tokenService.get();
-
   if (USE_MOCKS) {
     const response = await fetch("/users.json").then((res) => res.json());
     return response.data[0]; // в моках возвращаем первого юзера
   }
 
-  const response = await request<{ data: IUserProfile }>("/auth/profile", {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  const response = await request<{ data: IUserProfile }>("/auth/profile");
   return response.data;
 };
 
@@ -104,8 +96,6 @@ export const getProfile = async (): Promise<IUserProfile> => {
 export const changePassword = async (
   newPassword: string,
 ): Promise<{ newPassword: string }> => {
-  const token = tokenService.get();
-
   if (USE_MOCKS) {
     return { newPassword };
   }
@@ -116,7 +106,6 @@ export const changePassword = async (
     {
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
       },
     },
   );
