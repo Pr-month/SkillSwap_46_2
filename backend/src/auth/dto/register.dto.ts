@@ -11,14 +11,6 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class RegisterDto {
   @ApiProperty({
-    description: 'Имя пользователя',
-    example: 'Иван',
-  })
-  @IsString()
-  @IsNotEmpty()
-  name: string;
-
-  @ApiProperty({
     description: 'Email пользователя',
     example: 'ivan@example.com',
   })

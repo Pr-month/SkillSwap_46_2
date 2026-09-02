@@ -114,7 +114,6 @@ export class AuthService {
         password: hashedPassword,
         city,
         about: dto.about,
-        name: dto.name,
         birthdate,
         role: Role.USER,
       };
