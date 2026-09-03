@@ -25,6 +25,7 @@ import {
   ApiUsersRemove,
   ApiUsersUpdateMe,
 } from './users.swagger';
+import { UpdateWantToLearnDto } from './dto/update-want-to-learn.dto';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Role } from '../shared/enums/role.enum';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -76,5 +77,12 @@ export class UsersController {
   @ApiUsersRemove()
   remove(@Param('id') id: string) {
     return this.usersService.remove(+id);
+  }
+
+  @Patch('me/want-to-learn')
+  @UseGuards(AccessTokenGuard)
+  updateWantToLearn(@Req() req: Request, @Body() dto: UpdateWantToLearnDto) {
+    const user = req.user as JwtPayload;
+    return this.usersService.updateWantToLearn(user.sub, dto.categoryIds);
   }
 }
