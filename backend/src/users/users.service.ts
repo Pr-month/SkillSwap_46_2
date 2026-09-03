@@ -12,7 +12,6 @@ import { User } from './entities/user.entity';
 import { FindUsersDto } from './dto/find-users.dto';
 import { City } from '../cities/entities/city.entity';
 import { Category } from '../categories/entities/category.entity';
-import { Not } from 'typeorm/browser';
 
 @Injectable()
 export class UsersService {
@@ -177,7 +176,7 @@ export class UsersService {
   ): Promise<Category[]> {
     const user = await this.userRepository.findOne({ where: { id: userId } });
 
-    if ( !user ) {
+    if (!user) {
       throw new NotFoundException(`Пользователь с id ${userId} не найден`);
     }
 
@@ -185,7 +184,7 @@ export class UsersService {
       id: In(categoryIds),
     });
 
-    if ( categories.length !== categoryIds.length ) {
+    if (categories.length !== categoryIds.length) {
       throw new BadRequestException('Одна или несколько категорий не найдены');
     }
 

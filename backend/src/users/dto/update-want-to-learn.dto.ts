@@ -1,7 +1,7 @@
-import { IsArray, IsUUID } from "class-validator";
+import { IsArray, IsUUID } from 'class-validator';
 
 export class UpdateWantToLearnDto {
   @IsArray()
-  @IsUUID('4', { each: true } )
+  @IsUUID('4', { each: true })
   categoryIds: string[];
 }
