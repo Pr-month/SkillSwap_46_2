@@ -7,7 +7,6 @@ import type {
   TSkillsResponse,
 } from "../utils/types";
 import { request } from "./client";
-import { tokenService } from "../utils/tokenService.ts";
 
 interface ApiResponse<T> {
   status: boolean;
@@ -63,34 +62,12 @@ export const addSkill = (skill: TSkillData): Promise<TSkillResponse> => {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      authorization: `Bearer ${tokenService.get()}`,
-    } as HeadersInit,
+    },
     body: JSON.stringify(skill),
   }).then((response: TSkillResponse) => response);
 };
 
 /** API: УДАЛЕНИЕ НАВЫКА ПО ЕГО ID */
-// export const deleteSkillById = async (
-//   skillId: TId,
-// ): Promise<{ status: boolean }> => {
-//   if (USE_MOCKS) return { status: true };
-//
-//   // Обработка DELETE с 204 ответом (без body)
-//   const response = await fetch(`/api/skills/${skillId}`, {
-//     method: "DELETE",
-//     headers: {
-//       "Content-Type": "application/json",
-//       authorization: `Bearer ${tokenService.get()}`,
-//     } as HeadersInit,
-//   });
-//
-//   if (!response.ok) {
-//     const error = await response.json().catch(() => ({}));
-//     return Promise.reject(error);
-//   }
-//
-//   return { status: true }; // успешное удаление (без body)
-// };
 export const deleteSkillById = async (
   skillId: TId,
 ): Promise<{ status: boolean }> => {
@@ -125,8 +102,7 @@ export const modifySkill = (
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
-      authorization: `Bearer ${tokenService.get()}`,
-    } as HeadersInit,
+    },
     body: JSON.stringify(skillData),
   }).then((response: TSkillResponse) => response);
 };
