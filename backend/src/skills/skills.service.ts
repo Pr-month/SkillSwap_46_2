@@ -51,6 +51,11 @@ export class SkillsService {
 
     const query = this.skillsRepository
       .createQueryBuilder('skill')
+      .select(['skill.id', 'skill.title', 'skill.createdAt'])
+      .leftJoin('skill.user', 'user')
+      .addSelect(['user.id', 'user.name', 'user.avatar', 'user.birthdate'])
+      .leftJoinAndSelect('user.city', 'city')
+      .leftJoinAndSelect('user.wantToLearn', 'wantToLearn')
       .where('LOWER(skill.title) LIKE LOWER(:search)', {
         search: `%${search}%`,
       })
@@ -58,12 +63,30 @@ export class SkillsService {
       .skip((page - 1) * limit)
       .take(limit);
 
-    const [data, total] = await query.getManyAndCount();
+    const [rawData, total] = await query.getManyAndCount();
     const totalPages = Math.ceil(total / limit);
 
     if (totalPages > 0 && page > totalPages) {
       throw new NotFoundException(`Запрашиваемая страница ${page} не найдена.`);
     }
+
+    const data = rawData.map((skill) => ({
+      id: skill.id,
+      title: skill.title,
+      createdAt: skill.createdAt,
+      user: {
+        id: skill.user.id,
+        name: skill.user.name,
+        avatar: skill.user.avatar,
+        age: this.calculateAge(skill.user.birthdate),
+        city: skill.user.city
+          ? { id: skill.user.city.id, name: skill.user.city.name } : null,
+        wantToLearn: skill.user.wantToLearn.map((c) => ({
+          id: c.id,
+          name: c.name,
+        })),
+      },
+    }));
 
     return {
       data,
@@ -71,6 +94,12 @@ export class SkillsService {
       totalPages: Math.ceil(total / limit),
     };
   }
+
+    private calculateAge(birthdate: Date | null): number | null {
+    if (!birthdate) return null;
+    const diff = Date.now() - new Date(birthdate).getTime();
+    return Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25));
+  } 
 
   findOne(id: number) {
     return `This action returns a #${id} skill`;
