@@ -26,7 +26,9 @@ import {
   ApiUsersUpdateMe,
 } from './users.swagger';
 import { UpdateWantToLearnDto } from './dto/update-want-to-learn.dto';
-import { retry } from 'rxjs';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Role } from '../shared/enums/role.enum';
+import { Roles } from '../auth/decorators/roles.decorator';
 
 @ApiTags('users')
 @Controller('users')
@@ -34,6 +36,8 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
+  @UseGuards(AccessTokenGuard, RolesGuard)
+  @Roles([Role.ADMIN])
   @ApiUsersFindAll()
   findAll(@Query() dto: FindUsersDto) {
     return this.usersService.findAll(dto);

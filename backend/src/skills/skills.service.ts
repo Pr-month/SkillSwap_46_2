@@ -21,6 +21,8 @@ export class SkillsService {
     private readonly skillsRepository: Repository<Skill>,
     @InjectRepository(Category)
     private readonly categoriesRepository: Repository<Category>,
+    @InjectRepository(User)
+    private readonly usersRepository: Repository<User>,
     private readonly usersService: UsersService,
   ) {}
 
@@ -74,6 +76,26 @@ export class SkillsService {
     return `This action returns a #${id} skill`;
   }
 
+  async findSimilarUsers(skillId: string): Promise<User[]> {
+    const skill = await this.skillsRepository.findOne({
+      where: { id: skillId },
+      relations: { category: true },
+    });
+
+    if (!skill) {
+      throw new NotFoundException(`Skill with id ${skillId} not found`);
+    }
+
+    return this.usersRepository
+      .createQueryBuilder('user')
+      .innerJoin(Skill, 'skill', 'skill.owner_id = user.id')
+      .where('skill.category_id = :categoryId', {
+        categoryId: skill.category.id,
+      })
+      .distinct(true)
+      .take(10)
+      .getMany();
+  }
   async update(ownerId: string, id: string, updateSkillDto: UpdateSkillDto) {
     const skill = await this.skillsRepository.findOne({
       where: { id },

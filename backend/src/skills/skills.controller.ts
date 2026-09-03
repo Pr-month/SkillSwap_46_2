@@ -48,6 +48,11 @@ export class SkillsController {
     return this.skillsService.findAll(dto);
   }
 
+  @Get(':id/similar')
+  findSimilarUsers(@Param('id') id: string) {
+    return this.skillsService.findSimilarUsers(id);
+  }
+
   @Get(':id')
   @ApiSkillsFindOne()
   findOne(@Param('id') id: string) {

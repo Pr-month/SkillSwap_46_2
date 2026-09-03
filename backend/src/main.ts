@@ -8,9 +8,11 @@ import cookieParser from 'cookie-parser';
 import { appConfig } from './config/app.config';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
+import helmet from 'helmet';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  app.use(helmet());
   app.setGlobalPrefix('api');
   const applicationConfiguration = app.get<ConfigType<typeof appConfig>>(
     appConfig.KEY,

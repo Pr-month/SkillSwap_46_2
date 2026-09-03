@@ -5,9 +5,10 @@ import { SkillsController } from './skills.controller';
 import { Skill } from './entities/skill.entity';
 import { UsersModule } from '../users/users.module';
 import { Category } from '../categories/entities/category.entity';
+import { User } from '../users/entities/user.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Skill, Category]), UsersModule],
+  imports: [TypeOrmModule.forFeature([Skill, Category, User]), UsersModule],
   controllers: [SkillsController],
   providers: [SkillsService],
 })
