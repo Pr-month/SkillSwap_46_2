@@ -271,7 +271,6 @@ describe('AuthService', () => {
         password: 'password',
         cityId: 'c1',
         about: 'about me',
-        name: 'New User',
         birthdate: '1990-01-01',
       };
 
@@ -290,7 +289,6 @@ describe('AuthService', () => {
         password: 'hashed-password',
         city: cityObj,
         about: dto.about,
-        name: dto.name,
         birthdate: new Date(dto.birthdate as string),
         role: Role.USER,
       } as unknown as User);
@@ -301,7 +299,6 @@ describe('AuthService', () => {
           email: dto.email,
           city: cityObj,
           about: dto.about,
-          name: dto.name,
           birthdate: new Date(dto.birthdate as string),
           role: Role.USER,
         } as unknown as User)
@@ -310,7 +307,6 @@ describe('AuthService', () => {
           email: dto.email,
           city: cityObj,
           about: dto.about,
-          name: dto.name,
           birthdate: new Date(dto.birthdate as string),
           role: Role.USER,
         } as unknown as User);
@@ -332,7 +328,6 @@ describe('AuthService', () => {
         password: 'password',
         cityId: 'missing-city',
         about: 'about me',
-        name: 'User Two',
         birthdate: '1995-05-05',
       };
 
@@ -348,7 +343,6 @@ describe('AuthService', () => {
         password: 'password',
         cityId: 'c1',
         about: 'about me',
-        name: 'Existing User',
         birthdate: '1992-02-02',
       };
 
@@ -367,7 +361,6 @@ describe('AuthService', () => {
         password: 'hashed-password',
         city: cityObj,
         about: dto.about,
-        name: dto.name,
         birthdate: new Date(dto.birthdate as string),
         role: Role.USER,
       } as unknown as User);

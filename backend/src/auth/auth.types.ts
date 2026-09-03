@@ -33,7 +33,7 @@ export type AuthUser = {
   about?: string | null;
   birthdate?: string | null;
   avatar?: string | null;
-  name: string;
+  name: string | null;
 };
 
 export type AuthResult = {

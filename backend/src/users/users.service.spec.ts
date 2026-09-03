@@ -70,6 +70,15 @@ describe('UsersService', () => {
       });
 
       expect(userRepository.findAndCount).toHaveBeenCalledWith({
+      select: {
+        id: true,
+        name: true,
+        about: true,
+        birthdate: true,
+        gender: true,
+        avatar: true,
+        role: true,
+      },
         skip: 0,
         take: 20,
       });
@@ -86,6 +95,16 @@ describe('UsersService', () => {
       });
 
       expect(userRepository.findAndCount).toHaveBeenCalledWith({
+      select: {
+        id: true,
+        name: true,
+        about: true,
+        birthdate: true,
+        gender: true,
+        avatar: true,
+        role: true,
+      },
+
         skip: 10,
         take: 10,
       });

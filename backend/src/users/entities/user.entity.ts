@@ -27,7 +27,7 @@ export class User {
   password: string;
 
   @Column('text', { nullable: true })
-  name: string;
+  name: string | null;
 
   @Column('text', { nullable: true })
   about: string;
