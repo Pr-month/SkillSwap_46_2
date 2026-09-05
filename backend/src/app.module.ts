@@ -14,7 +14,8 @@ import { FilesModule } from './files/files.module';
 import { CitiesModule } from './cities/cities.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { RequestsModule } from './requests/requests.module';
-
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -28,6 +29,14 @@ import { RequestsModule } from './requests/requests.module';
         ...config,
       }),
     }),
+    ThrottlerModule.forRoot({
+      throttlers: [
+        {
+          ttl: 60000,
+          limit: 100,
+        },
+      ],
+    }),
     UsersModule,
     AuthModule,
     SkillsModule,
@@ -38,6 +47,12 @@ import { RequestsModule } from './requests/requests.module';
     RequestsModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService,
+{
+  provide: APP_GUARD,
+  useClass: ThrottlerGuard
+}
+
+  ],
 })
 export class AppModule {}
