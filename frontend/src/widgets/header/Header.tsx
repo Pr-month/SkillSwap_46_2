@@ -2,6 +2,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { setSearchQuery } from "../../services/filter/slice.ts";
 import { useDispatch, useSelector } from "../../services/store.ts";
 import { Avatar } from "../../shared/ui/avatar";
+import { resolveAssetUrl } from "../../shared/lib/resolveAssetUrl";
 import { Button } from "../../shared/ui/button";
 import { Logo } from "../../shared/ui/logo";
 import { Popover } from "../../shared/ui/popover";
@@ -13,7 +14,7 @@ import styles from "./header.module.css";
 import { logout } from "../../services/auth/slice";
 import { HeaderIcons } from "../../shared/ui/header-icons";
 import { developers } from "../../shared/constants/developers";
-
+ 
 const allCategories = [
   {
     title: "Бизнес и карьера",
@@ -100,36 +101,36 @@ const allCategories = [
     ],
   },
 ];
-
+ 
 export function Header() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
-
+ 
   const isAuthenticated = useSelector((state) => !!state.auth.currentUser);
   const user = useSelector((state) => state.auth.currentUser);
-
+ 
   const handleSearch = (value: string) => {
     dispatch(setSearchQuery(value));
-
+ 
     if (location.pathname !== "/") {
       navigate("/");
     }
   };
-
+ 
   const handleClear = () => {
     dispatch(setSearchQuery(""));
   };
-
+ 
   const handleLogoutClick = async () => {
     dispatch(logout());
     window.location.href = "/";
   };
-
+ 
   return (
     <header className={styles.header}>
       <Logo />
-
+ 
       <nav className={styles.nav} aria-label="Основная навигация">
         <ul className={styles.navList}>
           <li>
@@ -147,7 +148,7 @@ export function Header() {
               <DeveloperCardGroup developers={developers} />
             </Popover>
           </li>
-
+ 
           <li>
             <Popover
               trigger={
@@ -194,7 +195,7 @@ export function Header() {
           </li>
         </ul>
       </nav>
-
+ 
       <div className={styles.searchWrapper}>
         <Search
           onSearch={handleSearch}
@@ -203,9 +204,9 @@ export function Header() {
           aria-label="Поиск навыков"
         />
       </div>
-
+ 
       <HeaderIcons isUserAuth={isAuthenticated} />
-
+ 
       {isAuthenticated ? (
         <Popover
           trigger={
@@ -213,7 +214,7 @@ export function Header() {
               <span className={styles.userName}>{user?.name}</span>
               <Avatar
                 size="small"
-                src={user?.avatar}
+                src={resolveAssetUrl(user?.avatar)}
                 name={user?.name}
                 isAuthorized={true}
               />
@@ -243,7 +244,7 @@ export function Header() {
           >
             Войти
           </Button>
-
+ 
           <Button
             variant="primary"
             className={styles.registerButton}

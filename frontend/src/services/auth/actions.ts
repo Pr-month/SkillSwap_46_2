@@ -9,15 +9,17 @@ import {
 import { updateUser } from "../../api/userApi.ts";
 import { tokenService } from "../../utils/tokenService.ts";
 import type {
-  IRegisterUserData,
   TLoginUserData,
   TUpdateUserData,
 } from "../../utils/types.ts";
 import type { AuthState } from "./types.ts";
+import { updateMyProfile, updateWantToLearn } from "../../api/userApi.ts";
+import type { IUpdateProfileData } from "../../utils/types.ts";
+
 
 export const fetchRegister = createAsyncThunk(
   "auth/register",
-  async (data: IRegisterUserData, { rejectWithValue }) => {
+  async (data: TLoginUserData, { rejectWithValue }) => {
     try {
       return await registerUser(data);
     } catch (err) {
@@ -86,6 +88,29 @@ export const updatePassword = createAsyncThunk(
     try {
       await changePassword(newPassword);
       return newPassword;
+    } catch (err) {
+      return rejectWithValue(err);
+    }
+  },
+);
+
+
+export const fetchUpdateMyProfile = createAsyncThunk(
+  "auth/updateMyProfile",
+  async (payload: IUpdateProfileData, { rejectWithValue }) => {
+    try {
+      return await updateMyProfile(payload);
+    } catch (err) {
+      return rejectWithValue(err);
+    }
+  },
+);
+
+export const fetchUpdateWantToLearn = createAsyncThunk(
+  "auth/updateWantToLearn",
+  async (categoryIds: string[], { rejectWithValue }) => {
+    try {
+      return await updateWantToLearn(categoryIds);
     } catch (err) {
       return rejectWithValue(err);
     }

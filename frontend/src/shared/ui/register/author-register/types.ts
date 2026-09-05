@@ -1,5 +1,4 @@
 import type { Dispatch, SetStateAction } from "react";
-import { ECity } from "../../../constants/cities";
 import type { OptionType } from "../../dropdown/types";
 
 export type AuthorRegisterProps = {
@@ -17,16 +16,10 @@ export type AuthorRegisterProps = {
   setLearningSkills: Dispatch<SetStateAction<string[]>>;
   onNext: () => void;
   onBack: () => void;
+  errorText?: string;
 };
 
 export const genderOptions: OptionType[] = [
-  { value: "male", title: "Мужской" },
-  { value: "female", title: "Женский" },
+  { value: "MALE", title: "Мужской" },
+  { value: "FEMALE", title: "Женский" },
 ];
-
-export const cityOptions: OptionType[] = Object.entries(ECity).map(
-  ([key, value]) => ({
-    value: key,
-    title: value,
-  }),
-);

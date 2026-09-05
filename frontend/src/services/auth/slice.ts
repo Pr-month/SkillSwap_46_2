@@ -6,6 +6,8 @@ import {
   fetchProfile,
   fetchRegister,
   fetchUpdateCurrentUser,
+  fetchUpdateMyProfile,
+  fetchUpdateWantToLearn,
   updatePassword,
 } from "./actions.ts";
 import type { AuthState } from "./types.ts";
@@ -44,7 +46,23 @@ export const authSlice = createSlice({
       .addCase(fetchRegister.pending, handlePending)
       .addCase(fetchRegister.fulfilled, (state, action) => {
         state.loading = false;
-        state.currentUser = action.payload.user;
+        const { id, email, name } = action.payload.user;
+        // Ответ на регистрацию сейчас скудный (id/email/role/name) —
+        // достраиваем до полного IUserProfile дефолтами; реальные данные
+        // допишутся на шаге 2 (PATCH /users/me и .../want-to-learn).
+        state.currentUser = {
+          id,
+          email,
+          name: name ?? "",
+          birthDate: "",
+          city: "",
+          avatar: "",
+          likesSkillsIds: [],
+          userSkill: "",
+          interestedSkillsSubcategoriesIds: [],
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
       })
       .addCase(fetchRegister.rejected, handleRejected)
 
@@ -70,7 +88,32 @@ export const authSlice = createSlice({
         state.loading = false;
         state.currentUser = action.payload;
       })
-      .addCase(fetchUpdateCurrentUser.rejected, handleRejected);
+      .addCase(fetchUpdateCurrentUser.rejected, handleRejected)
+
+      // updateMyProfile (шаг 2 регистрации / редактирование профиля)
+      .addCase(fetchUpdateMyProfile.pending, handlePending)
+      .addCase(fetchUpdateMyProfile.fulfilled, (state, action) => {
+        state.loading = false;
+        // Полная синхронизация currentUser с реальной формой User с бэкенда —
+        // отдельная задача (birthdate/city там в другом формате, чем в
+        // IUserProfile). Но name/avatar — простые строки, синхронизируем
+        // сразу, иначе после регистрации в шапке показывается старое пустое
+        // значение, хотя в базе данные уже сохранены.
+        if (state.currentUser) {
+          const payload = action.payload as { name?: string; avatar?: string };
+          if ("name" in payload) state.currentUser.name = payload.name ?? "";
+          if ("avatar" in payload)
+            state.currentUser.avatar = payload.avatar ?? "";
+        }
+      })
+      .addCase(fetchUpdateMyProfile.rejected, handleRejected)
+ 
+      // updateWantToLearn (шаг 2 регистрации)
+      .addCase(fetchUpdateWantToLearn.pending, handlePending)
+      .addCase(fetchUpdateWantToLearn.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(fetchUpdateWantToLearn.rejected, handleRejected);
 
     builder
       .addCase(fetchCheckUser.pending, (state) => {

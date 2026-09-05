@@ -155,11 +155,36 @@ export interface ISkillExchange {
 
 export type UploadResponse = {
   url: string;
-  filename: string;
-  size: number; // в байтах
 };
 
 export interface IMyRequests {
   sent: ISkillExchange[];
   received: ISkillExchange[];
+}
+
+/** ОТВЕТ РЕАЛЬНОГО БЭКЕНДА НА POST /auth/register — гораздо более скудный,
+ *  чем IUserProfile: только то, что реально известно сразу после регистрации. */
+export interface IRegisterResponseUser {
+  id: TId;
+  email: string;
+  role: string;
+  name: string | null;
+}
+
+export type TRegisterResponse = { user: IRegisterResponseUser };
+
+/** ДАННЫЕ ДЛЯ PATCH /users/me — все поля опциональны */
+export interface IUpdateProfileData {
+  name?: string;
+  birthdate?: string;
+  gender?: "MALE" | "FEMALE";
+  cityId?: TId | null;
+  avatar?: string;
+  about?: string;
+}
+
+/** ОДНА КАТЕГОРИЯ В ОТВЕТЕ PATCH /users/me/want-to-learn */
+export interface IWantToLearnCategory {
+  id: TId;
+  name: string;
 }

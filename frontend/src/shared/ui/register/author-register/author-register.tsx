@@ -6,9 +6,10 @@ import {
   type SyntheticEvent,
 } from "react";
 import { format, subYears, isBefore, isAfter, parse } from "date-fns";
-import { cityOptions, genderOptions, type AuthorRegisterProps } from "./types";
+import { genderOptions, type AuthorRegisterProps } from "./types";
 import styles from "./author-register.module.css";
 import userInfo from "../../../../assets/images/user-info.svg";
+import { resolveAssetUrl } from "../../../lib/resolveAssetUrl";
 import { Button } from "../../button";
 import { BasicInput } from "../../input/basic-input";
 import { AuthLayout } from "../../auth-layout";
@@ -26,17 +27,9 @@ import {
   fetchSubCategories,
 } from "../../../../services/category/actions";
 import { useImageUpload } from "../../../hooks/useImageUpload";
-
-const CATEGORY_CSS_VARS: Record<string, string> = {
-  "Творчество и искусство": "var(--color-category-creative)",
-  "Иностранные языки": "var(--color-category-languages)",
-  "Бизнес и карьера": "var(--color-category-business)",
-  "Образование и развитие": "var(--color-category-education)",
-  "Дом и уют": "var(--color-category-home)",
-  "Здоровье и лайфстайл": "var(--color-category-health)",
-  other: "var(--color-tag-plus)",
-};
-
+import { getCities, type ICity } from "../../../../api/cityApi";
+import { USE_TOAST } from "../../../../config/apiConfig";
+ 
 export const AuthorRegister: FC<AuthorRegisterProps> = ({
   avatar,
   setAvatar,
@@ -48,59 +41,69 @@ export const AuthorRegister: FC<AuthorRegisterProps> = ({
   setGender,
   city,
   setCity,
-  learningSkills,
   setLearningSkills,
   onNext,
   onBack,
+  errorText,
 }) => {
   const dispatch = useDispatch();
-
+ 
   const categories = useSelector(selectCategories);
   const getSubcategoriesByCategoryId = useSelector(
     selectSubCategoriesByCategoryId,
   );
-
+ 
   useEffect(() => {
     dispatch(fetchCategories());
     dispatch(fetchSubCategories());
   }, [dispatch]);
-
+ 
   const { uploadSingle } = useImageUpload();
-
+  
+  const [cities, setCities] = useState<ICity[]>([]);
+ 
+  useEffect(() => {
+    getCities()
+      .then(setCities)
+      .catch((err) => console.error("Не удалось загрузить города", err));
+  }, []);
+ 
+  const cityOptions = cities.map((c) => ({ value: c.id, title: c.name }));
+ 
   const [selectedCategory, setSelectedCategory] = useState<OptionType | null>(
     null,
   );
   const [selectedSubcategory, setSelectedSubcategory] =
     useState<OptionType | null>(null);
-
+ 
   const today = new Date();
   const minBirthDateObject = subYears(today, 112);
   const maxBirthDateObject = subYears(today, 18);
-
+ 
   const minBirthDate = format(minBirthDateObject, "yyyy-MM-dd");
   const maxBirthDate = format(maxBirthDateObject, "yyyy-MM-dd");
-
+ 
   const birthDateError = useMemo(() => {
     if (!birthDate) {
       return "";
     }
-
+ 
     const parsed = parse(birthDate, "yyyy-MM-dd", new Date());
-
+ 
     if (Number.isNaN(parsed.getTime())) {
       return "Введите корректную дату";
     }
-
+ 
     if (
       isBefore(parsed, minBirthDateObject) ||
       isAfter(parsed, maxBirthDateObject)
     ) {
       return "Можно указать возраст только от 18 до 112 лет";
     }
-
+ 
     return "";
   }, [birthDate, minBirthDateObject, maxBirthDateObject]);
-
+ 
   const handleAvatarEdit = () => {
     const input = document.createElement("input");
     input.type = "file";
@@ -116,92 +119,52 @@ export const AuthorRegister: FC<AuthorRegisterProps> = ({
     };
     input.click();
   };
-
-  const availableCategories = useMemo(() => {
-    return categories.filter((category) => {
-      const allSubcategories = getSubcategoriesByCategoryId(category.id);
-      const availableSubs = allSubcategories.filter(
-        (sub) => !learningSkills.includes(sub.id),
-      );
-      return availableSubs.length > 0;
-    });
-  }, [categories, learningSkills, getSubcategoriesByCategoryId]);
-
+ 
+  // Одна категория и одна подкатегория — без списка тегов и кнопки
+  // "Добавить". Множественный выбор интересов переедет в личный кабинет
+  // отдельной задачей позже.
+  const availableCategories = categories;
+ 
   const availableSubcategories = useMemo(() => {
     if (!selectedCategory) return [];
-
-    const allSubcategories = getSubcategoriesByCategoryId(
-      selectedCategory.value,
-    );
-
-    return allSubcategories
-      .filter((sub) => !learningSkills.includes(sub.id))
-      .map((sub) => ({
+ 
+    return getSubcategoriesByCategoryId(selectedCategory.value).map(
+      (sub) => ({
         value: sub.id,
         title: sub.name,
-      }));
-  }, [selectedCategory, learningSkills, getSubcategoriesByCategoryId]);
-
-  const handleAddSkill = () => {
-    if (!selectedSubcategory) return;
-
-    setLearningSkills((prev) => [...prev, String(selectedSubcategory.value)]);
-    setSelectedCategory(null);
+      }),
+    );
+  }, [selectedCategory, getSubcategoriesByCategoryId]);
+ 
+  const handleCategoryChange = (option: OptionType | null) => {
+    setSelectedCategory(option);
     setSelectedSubcategory(null);
+    setLearningSkills([]);
   };
-
-  const handleRemoveSkill = (subcategoryId: string) => {
-    setLearningSkills((prev) => prev.filter((id) => id !== subcategoryId));
+ 
+  const handleSubcategoryChange = (option: OptionType | null) => {
+    setSelectedSubcategory(option);
+    setLearningSkills(option ? [String(option.value)] : []);
   };
-
-  const getTagColor = (categoryName: string): string => {
-    return CATEGORY_CSS_VARS[categoryName] || CATEGORY_CSS_VARS.other;
-  };
-
-  const getSkillDisplay = (subcategoryId: string) => {
-    for (const category of categories) {
-      const subcategory = getSubcategoriesByCategoryId(category.id).find(
-        (sub) => sub.id === subcategoryId,
-      );
-
-      if (subcategory) {
-        return {
-          name: subcategory.name,
-          categoryName: category.name,
-          categoryId: category.id,
-        };
-      }
-    }
-
-    return {
-      name: "Неизвестная подкатегория",
-      categoryName: "",
-      categoryId: "other",
-    };
-  };
-
-  const isDisabled =
-    !name.trim() ||
-    !birthDate ||
-    Boolean(birthDateError) ||
-    !gender?.value ||
-    !city?.value ||
-    learningSkills.length === 0 ||
-    !avatar;
-
+ 
+  // Обязательно только имя. Остальные поля опциональны — так же, как на
+  // бэкенде для PATCH /users/me (там всё, кроме имени, необязательно).
+  // Дату рождения всё же не даём отправить, если она заполнена, но с ошибкой.
+  const isDisabled = !name.trim() || Boolean(birthDateError);
+ 
   const handleSubmit = (e: SyntheticEvent) => {
     e.preventDefault();
-
+ 
     if (!isDisabled) {
       onNext();
     }
   };
-
+ 
   return (
     <AuthLayout
       type="register"
       currentStep={2}
-      totalSteps={3}
+      totalSteps={2}
       image={userInfo}
       description={{
         title: "Расскажите немного о себе",
@@ -211,7 +174,7 @@ export const AuthorRegister: FC<AuthorRegisterProps> = ({
       <form className={styles.form} name="register" onSubmit={handleSubmit}>
         <div className={styles.fields}>
           <Avatar
-            src={avatar}
+            src={resolveAssetUrl(avatar)}
             size="large"
             isEditable={true}
             onEdit={handleAvatarEdit}
@@ -263,57 +226,21 @@ export const AuthorRegister: FC<AuthorRegisterProps> = ({
               title: cat.name,
             }))}
             selected={selectedCategory}
-            onChange={setSelectedCategory}
+            onChange={handleCategoryChange}
           />
           <Dropdown
             title="Подкатегория навыка, которому хотите научиться"
             placeholder="Выберите подкатегорию"
             options={availableSubcategories}
             selected={selectedSubcategory}
-            onChange={setSelectedSubcategory}
+            onChange={handleSubcategoryChange}
             disabled={!selectedCategory}
           />
-          <Button
-            type="button"
-            variant="primary"
-            onClick={handleAddSkill}
-            disabled={!selectedCategory || !selectedSubcategory}
-            className={styles.addButton}
-          >
-            Добавить
-          </Button>
-
-          {learningSkills.length > 0 && (
-            <div className={styles.selectedSkills}>
-              <h4 className={styles.selectedSkillsTitle}>Выбранные навыки:</h4>
-              <div className={styles.skillTags}>
-                {learningSkills.map((subcategoryId) => {
-                  const { name, categoryName } = getSkillDisplay(subcategoryId);
-                  const colorVar = getTagColor(categoryName);
-
-                  return (
-                    <div
-                      key={subcategoryId}
-                      className={styles.skillTag}
-                      style={{ backgroundColor: colorVar }}
-                    >
-                      <span className={styles.skillTagName}>{name}</span>
-                      <button
-                        type="button"
-                        className={styles.skillTagRemove}
-                        onClick={() => handleRemoveSkill(subcategoryId)}
-                        aria-label={`Удалить ${name}`}
-                      >
-                        ×
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
         </div>
         <div className={styles.buttons}>
+        {errorText && !USE_TOAST && (
+          <p className={styles.error}>{errorText}</p>
+        )}
           <Button
             variant="secondary"
             onClick={onBack}
@@ -327,7 +254,7 @@ export const AuthorRegister: FC<AuthorRegisterProps> = ({
             className={styles.button}
             disabled={isDisabled}
           >
-            Продолжить
+            Зарегистрироваться
           </Button>
         </div>
       </form>
