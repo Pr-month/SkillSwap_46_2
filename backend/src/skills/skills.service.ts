@@ -101,8 +101,45 @@ export class SkillsService {
     return Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25));
   } 
 
-  findOne(id: number) {
-    return `This action returns a #${id} skill`;
+  async findOne(id: string) {
+    const skill = await this.skillsRepository.findOne({
+      where: { id },
+      relations: {
+        user: { city: true, wantToLearn: true },
+        category: { parent: true },
+      },
+    });
+
+    if (!skill) {
+      throw new NotFoundException(`Навык с id ${id} не найден`);
+    }
+
+    return {
+      id: skill.id,
+      title: skill.title,
+      description: skill.description,
+      images: skill.images || [],
+      createdAt: skill.createdAt,
+      category: {
+        id: skill.category.id,
+        name: skill.category.name,
+        parent: skill.category.parent
+          ? { id: skill.category.parent.id, name: skill.category.parent.name }
+          : null,
+      },
+      user: {
+        id: skill.user.id,
+        name: skill.user.name,
+        avatar: skill.user.avatar,
+        age: this.calculateAge(skill.user.birthdate),
+        about: skill.user.about,
+        city: skill.user.city ? { id: skill.user.city.id, name: skill.user.city.name } : null,
+        wantToLearn: (skill.user.wantToLearn || []).map((c) => ({
+          id: c.id,
+          name: c.name,
+        })),
+      },
+    };
   }
 
   async findSimilarUsers(skillId: string): Promise<User[]> {

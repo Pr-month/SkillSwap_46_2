@@ -56,7 +56,7 @@ export class SkillsController {
   @Get(':id')
   @ApiSkillsFindOne()
   findOne(@Param('id') id: string) {
-    return this.skillsService.findOne(+id);
+    return this.skillsService.findOne(id);
   }
 
   @Patch(':id')
