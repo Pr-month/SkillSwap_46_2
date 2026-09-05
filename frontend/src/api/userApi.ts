@@ -2,6 +2,7 @@ import { USE_MOCKS } from "../config/apiConfig";
 import { request } from "./client";
 import type { IUserProfile } from "../utils/types";
 import type { TId } from "../utils/types";
+import type { IUpdateProfileData, IWantToLearnCategory } from "../utils/types";
 
 interface ApiResponse<T> {
   status: boolean;
@@ -81,3 +82,23 @@ export const deleteUser = (id: TId, token: string): Promise<void> => {
     },
   });
 };
+
+// PATCH /users/me — обновление своего профиля (куки, без id в URL)
+export const updateMyProfile = (
+  payload: IUpdateProfileData,
+): Promise<IUserProfile> =>
+  request<IUserProfile>("/users/me", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+// PATCH /users/me/want-to-learn — полная замена списка категорий "хочу научиться"
+export const updateWantToLearn = (
+  categoryIds: TId[],
+): Promise<IWantToLearnCategory[]> =>
+  request<IWantToLearnCategory[]>("/users/me/want-to-learn", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ categoryIds }),
+  });

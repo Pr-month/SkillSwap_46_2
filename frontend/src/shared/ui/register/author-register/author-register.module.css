@@ -103,3 +103,10 @@
 .button {
   width: 100%;
 }
+
+.error {
+  color: var(--color-error, #d93025);
+  font-size: var(--fs-caption, 12px);
+  line-height: var(--lh-caption, 16px);
+  align-self: start;
+}

@@ -8,13 +8,10 @@ import { Button } from "../../button";
 import { BasicInput } from "../../input/basic-input";
 import { AuthLayout } from "../../auth-layout";
 import { PasswordInput } from "../../input";
-import { useDispatch } from "../../../../services/store";
-
-import { fetchCheckUser } from "../../../../services/auth/actions";
-import { USE_TOAST } from "../../../../config/apiConfig";
+ 
 import { Link } from "react-router-dom";
 import { Icon } from "../../icon";
-
+ 
 export const AccountRegister: FC<AccountRegisterProps> = ({
   email,
   setEmail,
@@ -22,22 +19,20 @@ export const AccountRegister: FC<AccountRegisterProps> = ({
   password,
   setPassword,
 }) => {
-  const dispatch = useDispatch();
-
   const [errors, setErrors] = useState({
     email: "",
     password: "",
   });
-
+ 
   const validate = () => {
     const newErrors = { email: "", password: "" };
-
+ 
     if (!email.trim()) {
       newErrors.email = "Email обязателен";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       newErrors.email = "Введите корректный email";
     }
-
+ 
     if (!password) {
       newErrors.password = "Пароль обязателен";
     } else if (password.length < 8) {
@@ -47,44 +42,27 @@ export const AccountRegister: FC<AccountRegisterProps> = ({
     } else if (!/[0-9]/.test(password)) {
       newErrors.password = "Должна быть цифра";
     }
-
+ 
     setErrors(newErrors);
     return !newErrors.email && !newErrors.password;
   };
-
-  const handleSubmit = async (e: SyntheticEvent) => {
+ 
+  const handleSubmit = (e: SyntheticEvent) => {
     e.preventDefault();
-
+ 
     if (!validate()) return;
-
-    try {
-      await dispatch(fetchCheckUser({ email, password })).unwrap();
-      onNext();
-      /* eslint-disable @typescript-eslint/no-explicit-any */
-    } catch (error: any) {
-      const statusCode =
-        error?.status || error?.statusCode || error?.response?.status;
-
-      if (statusCode) {
-        if (!USE_TOAST) {
-          setErrors((prev) => ({
-            ...prev,
-            email: "Пользователь с таким email уже существует",
-          }));
-        }
-      } else onNext();
-      /* eslint-enable @typescript-eslint/no-explicit-any */
-    }
+ 
+    onNext();
   };
-
+ 
   const isDisabled =
     !email.trim() || !password.trim() || !!errors.email || !!errors.password;
-
+ 
   return (
     <AuthLayout
       type="register"
       currentStep={1}
-      totalSteps={3}
+      totalSteps={2}
       image={lightBulb}
     >
       <div className={styles.registration__form}>

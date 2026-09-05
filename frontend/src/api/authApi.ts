@@ -1,48 +1,39 @@
 import { USE_MOCKS } from "../config/apiConfig";
 import { tokenService } from "../utils/tokenService.ts";
 import type {
-  IRegisterUserData,
   IUserProfile,
   TLoginUserData,
   TLoginUserResponse,
+  TRegisterResponse,
 } from "../utils/types";
 import { api, request } from "./client";
 
 const MOCK_TOKEN = "mock_jwt_token";
 
-// POST /auth/register
+
+// POST /auth/register — сейчас отправляем ТОЛЬКО email и password.
+// Остальные поля профиля уходят отдельными запросами на шаге 2
+// (PATCH /users/me и PATCH /users/me/want-to-learn).
 export const registerUser = async (
-  data: IRegisterUserData,
-): Promise<TLoginUserResponse> => {
+  data: TLoginUserData,
+): Promise<TRegisterResponse> => {
   if (USE_MOCKS) {
-    const mockUser: IUserProfile = {
-      id: "mock-user-1",
-      email: data.email,
-      name: data.name,
-      birthDate: data.birthDate,
-      gender: data.gender,
-      city: data.city,
-      avatar: data.avatar,
-      likesSkillsIds: [],
-      userSkill: "",
-      interestedSkillsSubcategoriesIds: [],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
     tokenService.set(MOCK_TOKEN);
     return {
-      status: true,
-      access_token: MOCK_TOKEN,
-      user: mockUser,
+      user: {
+        id: "mock-user-1",
+        email: data.email,
+        role: "USER",
+        name: null,
+      },
     };
   }
 
-  const resp = await request<TLoginUserResponse>("/auth/register", {
+  return request<TRegisterResponse>("/auth/register", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
-  return resp;
 };
 
 // POST /auth/login
