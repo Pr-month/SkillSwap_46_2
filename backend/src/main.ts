@@ -17,7 +17,8 @@ async function bootstrap() {
   const applicationConfiguration = app.get<ConfigType<typeof appConfig>>(
     appConfig.KEY,
   );
-  app.useStaticAssets(join(__dirname, '..', 'public'), {
+
+  app.useStaticAssets(join(process.cwd(), 'public'), {
     prefix: '/public',
   });
 
