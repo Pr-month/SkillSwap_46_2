@@ -29,7 +29,14 @@ export const getUserById = (id: TId): Promise<IUserProfile> => {
       .then((response) => {
         const user = response.data.find((u: IUserProfile) => u.id === id);
         if (!user) return Promise.reject({ message: "User not found" });
-        return user;
+        const formattedUser = {
+          ...user,
+          birthDate: user.birthdate,
+          city: user.city?.name ?? "",
+          interestedSkillsSubcategoriesIds:
+            user.wantToLearn?.map((c: IWantToLearnCategory) => c.id) ?? [],
+        };
+        return formattedUser;
       });
   }
   return request<ApiResponse<IUserProfile>>(`/users/${id}`).then(

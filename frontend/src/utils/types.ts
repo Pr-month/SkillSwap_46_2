@@ -31,13 +31,16 @@ export interface ISkillsSubcategory {
   id: TId;
   name: string;
   skillCategoryId: TId; // id родительской категории
+  parent?: { id: TId; name: string } | null;
 }
 
 /** КАТЕГОРИЯ НАВЫКОВ */
 export interface ISkillsCategory {
   id: TId;
   name: string;
+  parent?: { id: TId; name: string } | null;
   subcategories: ISkillsSubcategory[];
+  children?: ISkillsCategory[];
 }
 
 /** НАВЫК
