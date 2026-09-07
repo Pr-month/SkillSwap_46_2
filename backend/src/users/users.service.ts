@@ -22,7 +22,7 @@ export class UsersService {
     private readonly cityRepository: Repository<City>,
     @InjectRepository(Category)
     private readonly categoryRepository: Repository<Category>,
-  ) {}
+  ) { }
 
   async findAll(dto: FindUsersDto) {
     const { page, limit } = dto;
@@ -130,7 +130,11 @@ export class UsersService {
   async findById(id: string): Promise<User | null> {
     return this.userRepository.findOne({
       where: { id },
-      relations: { city: true },
+      relations: {
+        city: true,
+        wantToLearn: true,
+        favoriteSkills: true
+      },
     });
   }
 

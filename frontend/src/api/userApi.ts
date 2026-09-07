@@ -1,13 +1,27 @@
 import { USE_MOCKS } from "../config/apiConfig";
 import { request } from "./client";
-import type { IUserProfile } from "../utils/types";
+import type { IUserProfile, IUserProfileOnBackend } from "../utils/types";
 import type { TId } from "../utils/types";
 import type { IUpdateProfileData, IWantToLearnCategory } from "../utils/types";
-
 interface ApiResponse<T> {
   status: boolean;
   data: T;
 }
+
+const formatUser = (user: IUserProfileOnBackend): IUserProfile => ({
+  id: user.id,
+  email: user.email,
+  name: user.name ?? "",
+  birthDate: user.birthdate ?? "",
+  gender: user.gender ?? "UNSPECIFIED",
+  city: user.city?.name ?? "",
+  avatar: user.avatar ?? "",
+  aboutMe: user.about ?? "",
+  likesSkillsIds: user.favoriteSkills?.map((skill) => skill.id) ?? [],
+  userSkill: undefined,
+  interestedSkillsSubcategoriesIds:
+    user.wantToLearn?.map((category) => category.id) ?? [],
+});
 
 // GET /users
 export const getUsers = (): Promise<IUserProfile[]> => {
@@ -16,33 +30,35 @@ export const getUsers = (): Promise<IUserProfile[]> => {
       .then((res) => res.json())
       .then((response) => response.data);
   }
-  return request<ApiResponse<IUserProfile[]>>("/users").then(
-    (response: { status: boolean; data: IUserProfile[] }) => response.data,
+  return request<ApiResponse<IUserProfileOnBackend[]>>("/users").then(
+    (response) => response.data.map(formatUser),
   );
 };
 
 // GET /users/:id
 export const getUserById = (id: TId): Promise<IUserProfile> => {
+
   if (USE_MOCKS) {
     return fetch("/users.json")
       .then((res) => res.json())
       .then((response) => {
         const user = response.data.find((u: IUserProfile) => u.id === id);
         if (!user) return Promise.reject({ message: "User not found" });
-        const formattedUser = {
-          ...user,
-          birthDate: user.birthdate,
-          city: user.city?.name ?? "",
-          interestedSkillsSubcategoriesIds:
-            user.wantToLearn?.map((c: IWantToLearnCategory) => c.id) ?? [],
-        };
-        return formattedUser;
+        return user;
       });
   }
-  return request<ApiResponse<IUserProfile>>(`/users/${id}`).then(
-    (response: { status: boolean; data: IUserProfile }) => response.data,
+  return request<ApiResponse<IUserProfileOnBackend[]>>(`/users`).then(
+    (response) => {
+      const foundUser = response.data.find((u) => u.id === id);
+      if (!foundUser) {
+        return Promise.reject({ message: "User not found" });
+      }
+      const user = formatUser(foundUser);
+      return user;
+    },
   );
 };
+
 
 // PATCH /users/:id (требует токен)
 export const updateUser = (
