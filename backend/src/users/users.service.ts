@@ -87,10 +87,6 @@ export class UsersService {
     return { message: 'Пароль успешно изменён' };
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
-  }
-
   async update(id: string, dto: UpdateUserDto): Promise<User> {
     const user = await this.userRepository.findOne({
       where: { id },
@@ -121,10 +117,6 @@ export class UsersService {
     await this.userRepository.save(user);
 
     return user;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} user`;
   }
 
   async findById(id: string): Promise<User | null> {
