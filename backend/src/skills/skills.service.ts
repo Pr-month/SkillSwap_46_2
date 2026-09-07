@@ -80,7 +80,8 @@ export class SkillsService {
         avatar: skill.user.avatar,
         age: this.calculateAge(skill.user.birthdate),
         city: skill.user.city
-          ? { id: skill.user.city.id, name: skill.user.city.name } : null,
+          ? { id: skill.user.city.id, name: skill.user.city.name }
+          : null,
         wantToLearn: skill.user.wantToLearn.map((c) => ({
           id: c.id,
           name: c.name,
@@ -95,11 +96,11 @@ export class SkillsService {
     };
   }
 
-    private calculateAge(birthdate: Date | null): number | null {
+  private calculateAge(birthdate: Date | null): number | null {
     if (!birthdate) return null;
     const diff = Date.now() - new Date(birthdate).getTime();
     return Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25));
-  } 
+  }
 
   async findOne(id: string) {
     const skill = await this.skillsRepository.findOne({
@@ -133,7 +134,9 @@ export class SkillsService {
         avatar: skill.user.avatar,
         age: this.calculateAge(skill.user.birthdate),
         about: skill.user.about,
-        city: skill.user.city ? { id: skill.user.city.id, name: skill.user.city.name } : null,
+        city: skill.user.city
+          ? { id: skill.user.city.id, name: skill.user.city.name }
+          : null,
         wantToLearn: (skill.user.wantToLearn || []).map((c) => ({
           id: c.id,
           name: c.name,
