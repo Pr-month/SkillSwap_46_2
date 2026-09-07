@@ -54,8 +54,7 @@ export class CitiesService {
     if (!city) {
       throw new NotFoundException(`Город с id "${id}" не найден`);
     }
-    // Ошибки потому что dto берется из create-city.dto.ts, а это в другой веткке
-    // Сначала merge ветки create - после merge этой ветки
+
     const nextName = dto.name ?? city.name;
     const nextRegion = dto.region ?? city.region;
 
