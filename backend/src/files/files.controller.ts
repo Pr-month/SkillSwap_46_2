@@ -9,13 +9,13 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
-import { extname } from 'path';
+import { extname, join } from 'path';
 import { randomUUID } from 'crypto';
 import { existsSync, mkdirSync } from 'fs';
 import { FilesService } from './files.service';
 import { AccessTokenGuard } from '../auth/guards/accessToken.guard';
 
-const UPLOADS_DIR = './public/uploads';
+const UPLOADS_DIR = join(process.cwd(), 'public', 'uploads');
 const ALLOWED_MIME_TYPES = [
   'image/jpeg',
   'image/png',
