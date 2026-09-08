@@ -11,7 +11,11 @@ import {
 import { tokenService } from "../../utils/tokenService";
 import * as authApi from "../../api/authApi";
 import * as userApi from "../../api/userApi";
-import type { IUserProfile, TLoginUserResponse } from "../../utils/types";
+import type {
+  IUserProfile,
+  TLoginUserResponse,
+  TRegisterResponse,
+} from "../../utils/types";
 import type { AuthState } from "./types";
 
 // Мокаем tokenService
@@ -77,10 +81,13 @@ describe("auth thunks", () => {
     };
 
     it("fulfilled: вызывает registerUser и сохраняет пользователя", async () => {
-      const response: TLoginUserResponse = {
-        status: true,
-        access_token: "token-123",
-        user: mockUser,
+      const response: TRegisterResponse = {
+        user: {
+          id: "user-1",
+          email: "test@test.com",
+          role: "user",
+          name: "Test User",
+        },
       };
       mockedAuthApi.registerUser.mockResolvedValue(response);
 
@@ -88,7 +95,19 @@ describe("auth thunks", () => {
       await store.dispatch(fetchRegister(registerData));
 
       expect(mockedAuthApi.registerUser).toHaveBeenCalledWith(registerData);
-      expect(store.getState().auth.currentUser).toEqual(mockUser);
+      expect(store.getState().auth.currentUser).toEqual({
+        id: "user-1",
+        email: "test@test.com",
+        name: "Test User",
+        birthDate: "",
+        city: "",
+        avatar: "",
+        likesSkillsIds: [],
+        userSkill: "",
+        interestedSkillsSubcategoriesIds: [],
+        createdAt: expect.any(String),
+        updatedAt: expect.any(String),
+      });
       expect(store.getState().auth.loading).toBe(false);
     });
 

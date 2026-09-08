@@ -76,14 +76,33 @@ describe("authSlice", () => {
       expect(state.error).toBeNull();
     });
 
-    it("fulfilled: loading=false, currentUser из payload", () => {
-      const payload = { status: true, access_token: "tok", user: mockUser };
+    it("fulfilled: loading=false, currentUser достраивается дефолтами", () => {
+      const payload = {
+        user: {
+          id: "user-1",
+          email: "test@test.com",
+          role: "user",
+          name: "Test User",
+        },
+      };
       const state = authReducer(
         { ...initialState, loading: true },
         fetchRegister.fulfilled(payload as any, "", {} as any),
       );
       expect(state.loading).toBe(false);
-      expect(state.currentUser).toEqual(mockUser);
+      expect(state.currentUser).toEqual({
+        id: "user-1",
+        email: "test@test.com",
+        name: "Test User",
+        birthDate: "",
+        city: "",
+        avatar: "",
+        likesSkillsIds: [],
+        userSkill: "",
+        interestedSkillsSubcategoriesIds: [],
+        createdAt: expect.any(String),
+        updatedAt: expect.any(String),
+      });
     });
 
     it("rejected: loading=false, error заполнен", () => {
