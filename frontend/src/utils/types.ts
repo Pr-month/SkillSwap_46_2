@@ -216,3 +216,43 @@ export interface IWantToLearnCategory {
   id: TId;
   name: string;
 }
+
+
+/** ЭЛЕМЕНТ ПУБЛИЧНОЙ ЛЕНТЫ НАВЫКОВ (GET /skills) — навык со вложенным автором.
+ *  Отдельный тип от ISkill: та форма — для создания/редактирования своего
+ *  навыка, эта — специально под витрину карточек на главной. */
+export interface IPublicSkillCard {
+  id: TId;
+  title: string;
+  createdAt: string;
+  user: {
+    id: TId;
+    name: string;
+    avatar: string | null;
+    age: number | null;
+    city: { id: TId; name: string } | null;
+    wantToLearn: { id: TId; name: string }[] | null;
+  };
+}
+ 
+export interface IPublicSkillsFeedResponse {
+  data: IPublicSkillCard[];
+  page: number;
+  totalPages: number;
+}
+ 
+/** РЕАЛЬНЫЙ ОТВЕТ GET /users/me — форма настоящей сущности User с бэкенда,
+ *  отличается от IUserProfile (city — объект, а не строка; нет
+ *  likesSkillsIds/userSkill/interestedSkillsSubcategoriesIds — эти relations
+ *  сейчас этим эндпоинтом не подгружаются, см. чат с бэком). */
+export interface IRealUserMeResponse {
+  id: TId;
+  email: string;
+  name: string | null;
+  about: string | null;
+  birthdate: string | null;
+  gender: "MALE" | "FEMALE" | null;
+  avatar: string | null;
+  role: string;
+  city: { id: TId; name: string; region: string } | null;
+}
