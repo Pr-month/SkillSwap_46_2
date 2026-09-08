@@ -3,7 +3,17 @@
 export type TId = string;
 
 /** ПОЛ ПОЛЬЗОВАТЕЛЯ */
-export type TGender = "male" | "female" | "unspecified";
+export type TGender = "MALE" | "FEMALE" | "UNSPECIFIED";
+
+/** РОЛЬ ПОЛЬЗОВАТЕЛЯ */
+export type TRole = "USER" | "ADMIM";
+
+/** ГОРОД */
+export interface ICity {
+  id: string;
+  name: string;
+  region: string;
+}
 
 /** ПОЛЬЗОВАТЕЛЬ */
 export interface IUser {
@@ -20,17 +30,25 @@ export interface IUserProfile extends IUser {
   avatar: string;
   aboutMe?: string; // "о себе"
   likesSkillsIds: TId[]; // массив id навыков, которые лайкнул пользователь
-  userSkill: TId; // навык пользователя, которому он может научить
+  userSkill?: TId; // навык пользователя, которому он может научить
   interestedSkillsSubcategoriesIds: TId[]; // id[] покатегорий, которым пользователь хочет научиться
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
-/** ПОДКАТЕГОРИЯ НАВЫКОВ */
-export interface ISkillsSubcategory {
-  id: TId;
-  name: string;
-  skillCategoryId: TId; // id родительской категории
+/** ПРОФИЛЬ ПОЛЬЗОВАТЕЛЯ НА БЭКЕ */ 
+export interface IUserProfileOnBackend {
+  id: string;
+  email: string;
+  name?: string;
+  about?: string;
+  birthdate?: string;
+  city?: ICity;
+  gender?: TGender;
+  avatar?: string;
+  role: TRole;
+  wantToLearn: ISkillsSubcategory[];
+  favoriteSkills: ISkill[];
 }
 
 /** КАТЕГОРИЯ НАВЫКОВ */
@@ -38,6 +56,16 @@ export interface ISkillsCategory {
   id: TId;
   name: string;
   subcategories: ISkillsSubcategory[];
+  wantToLearnUsers: IUser[];
+  skills: ISkill[];
+}
+
+/** ПОДКАТЕГОРИЯ НАВЫКОВ */
+export interface ISkillsSubcategory {
+  id: TId;
+  name: string;
+  skillCategoryId: TId; // id родительской категории
+  parent?: { id: TId; name: string } | null;
 }
 
 /** НАВЫК
@@ -47,7 +75,7 @@ export interface ISkillsCategory {
  * 2. Пользователь может выбрать НЕСКОЛЬКО НАВЫКОВ, которым хочет НАУЧИТЬСЯ, ИЗ РАЗНЫХ КАТЕГОРИЙ.
  */
 export interface ISkill {
-  id?: TId;
+  id: TId;
   title: string;
   description: string;
   skillSubcategory: TId;
