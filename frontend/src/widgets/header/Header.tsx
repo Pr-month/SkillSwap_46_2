@@ -11,7 +11,7 @@ import { Search } from "../../shared/ui/search";
 import { SkillCategoryGroup } from "../../shared/ui/skill-category-group";
 import { DeveloperCardGroup } from "../developer-card";
 import styles from "./header.module.css";
-import { logout } from "../../services/auth/slice";
+import { fetchLogout } from "../../services/auth/actions";
 import { HeaderIcons } from "../../shared/ui/header-icons";
 import { developers } from "../../shared/constants/developers";
  
@@ -109,6 +109,7 @@ export function Header() {
  
   const isAuthenticated = useSelector((state) => !!state.auth.currentUser);
   const user = useSelector((state) => state.auth.currentUser);
+  console.log("currentUser в шапке:", user);
  
   const handleSearch = (value: string) => {
     dispatch(setSearchQuery(value));
@@ -123,7 +124,7 @@ export function Header() {
   };
  
   const handleLogoutClick = async () => {
-    dispatch(logout());
+    await dispatch(fetchLogout());
     window.location.href = "/";
   };
  

@@ -5,6 +5,7 @@ import type { OptionType } from "../../shared/ui/dropdown/types";
 import { handleError } from "../../utils/errors/errorUtils";
 import type { TLoginUserData } from "../../utils/types";
 import {
+  fetchProfile,
   fetchRegister,
   fetchUpdateMyProfile,
   fetchUpdateWantToLearn,
@@ -56,6 +57,11 @@ export const Register: FC = () => {
       if (learningSkills.length > 0) {
         await dispatch(fetchUpdateWantToLearn(learningSkills)).unwrap();
       }
+ 
+      // Подтягиваем полный профиль через /users/me — /auth/register и
+      // PATCH /users/me отдают неполные/несовместимые формы, а этот
+      // запрос приводит currentUser к правильному виду разом.
+      dispatch(fetchProfile());
  
       navigate(from, {
         replace: true,

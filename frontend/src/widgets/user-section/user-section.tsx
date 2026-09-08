@@ -10,6 +10,7 @@ import { SkillCardGroup } from "../skillcard-group";
 import { SkillCardGroupHeader } from "../skillcard-group-header";
 import { SkillCardSlider } from "../skillcard-slider";
 import styles from "./user-section.module.css";
+import { resolveAssetUrl } from "../../shared/lib/resolveAssetUrl";
 
 interface UserSectionProps {
   title: string;
@@ -144,7 +145,7 @@ export const UserSection: FC<UserSectionProps> = ({
 
   const cards: SkillCardProps[] = preparedUsers.map((user) => ({
     id: user.id,
-    avatar: user.avatar,
+    avatar: resolveAssetUrl(user.avatar),
     name: user.name,
     city: user.city,
     age: user.age,
