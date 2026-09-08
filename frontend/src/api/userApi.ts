@@ -1,0 +1,127 @@
+import { USE_MOCKS } from "../config/apiConfig";
+import { request } from "./client";
+import type { IUserProfile, IUserProfileOnBackend } from "../utils/types";
+import type { TId } from "../utils/types";
+import type { IUpdateProfileData, IWantToLearnCategory } from "../utils/types";
+interface ApiResponse<T> {
+  status: boolean;
+  data: T;
+}
+
+const formatUser = (user: IUserProfileOnBackend): IUserProfile => ({
+  id: user.id,
+  email: user.email,
+  name: user.name ?? "",
+  birthDate: user.birthdate ?? "",
+  gender: user.gender ?? "UNSPECIFIED",
+  city: user.city?.name ?? "",
+  avatar: user.avatar ?? "",
+  aboutMe: user.about ?? "",
+  likesSkillsIds: user.favoriteSkills?.map((skill) => skill.id) ?? [],
+  userSkill: undefined,
+  interestedSkillsSubcategoriesIds:
+    user.wantToLearn?.map((category) => category.id) ?? [],
+});
+
+// GET /users
+export const getUsers = (): Promise<IUserProfile[]> => {
+  if (USE_MOCKS) {
+    return fetch("/users.json")
+      .then((res) => res.json())
+      .then((response) => response.data);
+  }
+  return request<ApiResponse<IUserProfileOnBackend[]>>("/users").then(
+    (response) => response.data.map(formatUser),
+  );
+};
+
+// GET /users/:id
+export const getUserById = (id: TId): Promise<IUserProfile> => {
+
+  if (USE_MOCKS) {
+    return fetch("/users.json")
+      .then((res) => res.json())
+      .then((response) => {
+        const user = response.data.find((u: IUserProfile) => u.id === id);
+        if (!user) return Promise.reject({ message: "User not found" });
+        return user;
+      });
+  }
+  return request<ApiResponse<IUserProfileOnBackend[]>>(`/users`).then(
+    (response) => {
+      const foundUser = response.data.find((u) => u.id === id);
+      if (!foundUser) {
+        return Promise.reject({ message: "User not found" });
+      }
+      const user = formatUser(foundUser);
+      return user;
+    },
+  );
+};
+
+
+// PATCH /users/:id (требует токен)
+export const updateUser = (
+  id: string,
+  payload: Partial<IUserProfile>,
+  token: string,
+): Promise<IUserProfile> => {
+  if (USE_MOCKS) {
+    return fetch("/users.json")
+      .then((res) => res.json())
+      .then((response) => {
+        const user = response.data.find((u: IUserProfile) => u.id === id);
+        if (!user) return Promise.reject({ message: "User not found" });
+        // Эмулируем обновление — мержим payload поверх найденного юзера
+        return { ...user, ...payload, updatedAt: new Date().toISOString() };
+      });
+  }
+  return request<ApiResponse<IUserProfile>>(`/users/${id}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  }).then((response: { status: boolean; data: IUserProfile }) => response.data);
+};
+
+// DELETE /users/:id (требует токен)
+export const deleteUser = (id: TId, token: string): Promise<void> => {
+  if (USE_MOCKS) {
+    return fetch("/users.json")
+      .then((res) => res.json())
+      .then((response) => {
+        const exists = response.data.some((u: IUserProfile) => u.id === id);
+        if (!exists) return Promise.reject({ message: "User not found" });
+        // В моках просто эмулируем успех
+        return;
+      });
+  }
+  return request<void>(`/users/${id}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+};
+
+// PATCH /users/me — обновление своего профиля (куки, без id в URL)
+export const updateMyProfile = (
+  payload: IUpdateProfileData,
+): Promise<IUserProfile> =>
+  request<IUserProfile>("/users/me", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+// PATCH /users/me/want-to-learn — полная замена списка категорий "хочу научиться"
+export const updateWantToLearn = (
+  categoryIds: TId[],
+): Promise<IWantToLearnCategory[]> =>
+  request<IWantToLearnCategory[]>("/users/me/want-to-learn", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ categoryIds }),
+  });
