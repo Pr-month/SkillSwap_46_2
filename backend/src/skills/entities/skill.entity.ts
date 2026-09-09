@@ -2,6 +2,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  ManyToMany,
   ManyToOne,
   JoinColumn,
   PrimaryGeneratedColumn,
@@ -33,6 +34,9 @@ export class Skill {
   })
   @JoinColumn({ name: 'category_id' })
   category!: Category;
+
+  @ManyToMany(() => User, (user) => user.favoriteSkills)
+  favoritedByUsers: User[];
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

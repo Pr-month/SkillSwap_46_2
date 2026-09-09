@@ -3,7 +3,17 @@
 export type TId = string;
 
 /** ПОЛ ПОЛЬЗОВАТЕЛЯ */
-export type TGender = "male" | "female" | "unspecified";
+export type TGender = "MALE" | "FEMALE" | "UNSPECIFIED";
+
+/** РОЛЬ ПОЛЬЗОВАТЕЛЯ */
+export type TRole = "USER" | "ADMIM";
+
+/** ГОРОД */
+export interface ICity {
+  id: string;
+  name: string;
+  region: string;
+}
 
 /** ПОЛЬЗОВАТЕЛЬ */
 export interface IUser {
@@ -20,17 +30,25 @@ export interface IUserProfile extends IUser {
   avatar: string;
   aboutMe?: string; // "о себе"
   likesSkillsIds: TId[]; // массив id навыков, которые лайкнул пользователь
-  userSkill: TId; // навык пользователя, которому он может научить
+  userSkill?: TId; // навык пользователя, которому он может научить
   interestedSkillsSubcategoriesIds: TId[]; // id[] покатегорий, которым пользователь хочет научиться
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
-/** ПОДКАТЕГОРИЯ НАВЫКОВ */
-export interface ISkillsSubcategory {
-  id: TId;
-  name: string;
-  skillCategoryId: TId; // id родительской категории
+/** ПРОФИЛЬ ПОЛЬЗОВАТЕЛЯ НА БЭКЕ */ 
+export interface IUserProfileOnBackend {
+  id: string;
+  email: string;
+  name?: string;
+  about?: string;
+  birthdate?: string;
+  city?: ICity;
+  gender?: TGender;
+  avatar?: string;
+  role: TRole;
+  wantToLearn: ISkillsSubcategory[];
+  favoriteSkills: ISkill[];
 }
 
 /** КАТЕГОРИЯ НАВЫКОВ */
@@ -38,6 +56,16 @@ export interface ISkillsCategory {
   id: TId;
   name: string;
   subcategories: ISkillsSubcategory[];
+  wantToLearnUsers: IUser[];
+  skills: ISkill[];
+}
+
+/** ПОДКАТЕГОРИЯ НАВЫКОВ */
+export interface ISkillsSubcategory {
+  id: TId;
+  name: string;
+  skillCategoryId: TId; // id родительской категории
+  parent?: { id: TId; name: string } | null;
 }
 
 /** НАВЫК
@@ -47,7 +75,7 @@ export interface ISkillsCategory {
  * 2. Пользователь может выбрать НЕСКОЛЬКО НАВЫКОВ, которым хочет НАУЧИТЬСЯ, ИЗ РАЗНЫХ КАТЕГОРИЙ.
  */
 export interface ISkill {
-  id?: TId;
+  id: TId;
   title: string;
   description: string;
   skillSubcategory: TId;
@@ -187,4 +215,44 @@ export interface IUpdateProfileData {
 export interface IWantToLearnCategory {
   id: TId;
   name: string;
+}
+
+
+/** ЭЛЕМЕНТ ПУБЛИЧНОЙ ЛЕНТЫ НАВЫКОВ (GET /skills) — навык со вложенным автором.
+ *  Отдельный тип от ISkill: та форма — для создания/редактирования своего
+ *  навыка, эта — специально под витрину карточек на главной. */
+export interface IPublicSkillCard {
+  id: TId;
+  title: string;
+  createdAt: string;
+  user: {
+    id: TId;
+    name: string;
+    avatar: string | null;
+    age: number | null;
+    city: { id: TId; name: string } | null;
+    wantToLearn: { id: TId; name: string }[] | null;
+  };
+}
+ 
+export interface IPublicSkillsFeedResponse {
+  data: IPublicSkillCard[];
+  page: number;
+  totalPages: number;
+}
+ 
+/** РЕАЛЬНЫЙ ОТВЕТ GET /users/me — форма настоящей сущности User с бэкенда,
+ *  отличается от IUserProfile (city — объект, а не строка; нет
+ *  likesSkillsIds/userSkill/interestedSkillsSubcategoriesIds — эти relations
+ *  сейчас этим эндпоинтом не подгружаются, см. чат с бэком). */
+export interface IRealUserMeResponse {
+  id: TId;
+  email: string;
+  name: string | null;
+  about: string | null;
+  birthdate: string | null;
+  gender: "MALE" | "FEMALE" | null;
+  avatar: string | null;
+  role: string;
+  city: { id: TId; name: string; region: string } | null;
 }
