@@ -52,10 +52,22 @@ export function SkillPage() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const selectedUser = useSelector(selectSelectedUser);
+  const selectedUserFromStore = useSelector((state) => selectSelectedUser(state, id));
   const similarUsers = useSelector(selectSimilarUsers);
   const users = useSelector((state) => state.user.list);
   const skills = useSelector((state) => state.skills.data);
+  const selectedSkill =
+    skills.find((skill) => String(skill.id) === String(id)) ?? null;
+  const rawSkillUser = (selectedSkill as any)?.user ?? null;
+  const selectedUser =
+    selectedUserFromStore ??
+    users.find((user) => String(user.userSkill) === String(id)) ??
+    users.find(
+      (user) =>
+        String(user.id) === String((selectedSkill as any)?.userId ?? rawSkillUser?.id),
+    ) ??
+    null;
+
   const subCategories = useSelector((state) => state.category.subCategories);
   const categories = useSelector((state) => state.category.categories);
   const currentUser = useSelector((state) => state.auth.currentUser);
@@ -83,8 +95,16 @@ export function SkillPage() {
       dispatch(fetchSubCategories());
     }
 
-    if (id && selectedUser?.id !== id) {
-      dispatch(fetchUserById(id));
+    const authorUserId = (selectedSkill as any)?.user?.id ?? selectedSkill?.userId;
+
+    if (authorUserId) {
+      const matchedUser =
+        users.find((user) => String(user.id) === String(authorUserId)) ??
+        users.find((user) => String(user.userSkill) === String(selectedSkill?.id));
+
+      if (!matchedUser) {
+        dispatch(fetchUserById(authorUserId));
+      }
     }
 
     if (currentUser) {
@@ -93,12 +113,12 @@ export function SkillPage() {
   }, [
     dispatch,
     id,
-    selectedUser?.id,
-    users.length,
-    skills.length,
+    users,
+    skills,
     categories.length,
     subCategories.length,
     currentUser,
+    selectedSkill,
   ]);
 
   if (!id) {
@@ -116,10 +136,6 @@ export function SkillPage() {
       </section>
     );
   }
-
-  const selectedSkill = skills.find(
-    (skill) => skill.id === selectedUser.userSkill,
-  );
 
   const selectedSubCategory = selectedSkill
     ? subCategories.find(
@@ -503,7 +519,7 @@ export function SkillPage() {
         {preparedSimilarUsers.length > 0 ? (
           <SkillCardSlider
             cards={preparedSimilarUsers.map((user) => ({
-              id: user.id,
+              id: user.userSkill,
               avatar: user.avatar,
               name: user.name,
               city: user.city,

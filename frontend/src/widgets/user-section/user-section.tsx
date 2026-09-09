@@ -124,7 +124,7 @@ export const UserSection: FC<UserSectionProps> = ({
   }
 
   const cards: SkillCardProps[] = preparedUsers.map((user) => ({
-    id: user.id,
+    id: user.userSkill,
     avatar: user.avatar,
     name: user.name,
     city: user.city,
