@@ -13,6 +13,7 @@ describe('AuthController', () => {
     register: jest.Mock;
     refreshFromPayload: jest.Mock;
     deleteRefreshToken: jest.Mock;
+    checkUser: jest.Mock;
   };
 
   const authResult = {
@@ -42,6 +43,7 @@ describe('AuthController', () => {
       register: jest.fn().mockResolvedValue(authResult),
       refreshFromPayload: jest.fn().mockResolvedValue(authResult),
       deleteRefreshToken: jest.fn().mockResolvedValue(undefined),
+      checkUser: jest.fn().mockResolvedValue({ exists: true }),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -116,6 +118,17 @@ describe('AuthController', () => {
         path: '/',
         maxAge: 604800 * 1000,
       });
+    });
+  });
+
+  describe('checkUser', () => {
+    it('возвращает подтверждение, если пользователь найден и пароль верный', async () => {
+      const dto = { email: 'user@example.com', password: 'plain-password' };
+
+      const result = await controller.checkUser(dto);
+
+      expect(authService.checkUser).toHaveBeenCalledWith(dto);
+      expect(result).toEqual({ exists: true });
     });
   });
 

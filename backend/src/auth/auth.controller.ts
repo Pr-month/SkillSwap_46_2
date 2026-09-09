@@ -28,6 +28,7 @@ import { RegisterDto } from './dto/register.dto';
 import { Role } from '../shared/enums/role.enum';
 import { ApiTags } from '@nestjs/swagger';
 import {
+  ApiAuthCheckUser,
   ApiAuthLogin,
   ApiAuthLogout,
   ApiAuthRefresh,
@@ -96,6 +97,13 @@ export class AuthController {
     const result = await this.authService.register(dto);
     this.setAuthCookies(res, result.accessToken, result.refreshToken);
     return { user: result.user };
+  }
+
+  @Post('check-user')
+  @HttpCode(HttpStatus.OK)
+  @ApiAuthCheckUser()
+  async checkUser(@Body() loginDto: LoginDto) {
+    return this.authService.checkUser(loginDto);
   }
 
   private setAuthCookies(

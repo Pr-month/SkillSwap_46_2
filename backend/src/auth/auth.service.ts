@@ -171,6 +171,28 @@ export class AuthService {
     }
   }
 
+  async checkUser(loginDto: LoginDto): Promise<{ exists: boolean }> {
+    const user = await this.userRepository.findOne({
+      where: { email: loginDto.email },
+      select: ['id', 'email', 'password'],
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('Пользователь не найден');
+    }
+
+    const isPasswordValid = await bcrypt.compare(
+      loginDto.password,
+      user.password,
+    );
+
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Неверный email или пароль');
+    }
+
+    return { exists: true };
+  }
+
   async deleteRefreshToken(userId: string): Promise<void> {
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (user) {
