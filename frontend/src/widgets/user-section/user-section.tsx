@@ -9,6 +9,7 @@ import type { SkillCardProps } from "../skillcard";
 import { SkillCardGroup } from "../skillcard-group";
 import { SkillCardGroupHeader } from "../skillcard-group-header";
 import { SkillCardSlider } from "../skillcard-slider";
+import { filterPreparedUsers, type PreparedUser } from "./user-section.utils";
 import styles from "./user-section.module.css";
 
 interface UserSectionProps {
@@ -20,16 +21,6 @@ interface UserSectionProps {
   viewMode?: "grid" | "slider";
   isSorted?: boolean;
 }
-
-type ValidTId = Exclude<TId, null | undefined>;
-
-type PreparedUser = IUserProfile & {
-  age: number;
-  canTeach: string;
-  wantsToLearn: string[];
-  userSkill: ValidTId;
-  skillCreatedAt: string;
-};
 
 function getAgeFromBirthDate(birthDate: string): number | null {
   const birth = new Date(birthDate);
@@ -64,6 +55,7 @@ export const UserSection: FC<UserSectionProps> = ({
   const categories = useSelector((state) => state.category.categories);
   const currentUser = useSelector((state) => state.auth.currentUser);
   const sentRequests = useSelector((state) => state.requests.sent);
+  const currentUserLikedSkills = currentUser?.likesSkillsIds ?? [];
 
   const [sortOrder, setSortOrder] = useState<"new" | "old">("new");
 
@@ -73,11 +65,11 @@ export const UserSection: FC<UserSectionProps> = ({
       return;
     }
 
-    const isLiked = currentUser.likesSkillsIds.includes(skillId);
+    const isLiked = currentUserLikedSkills.includes(skillId);
 
     const nextLikesSkillsIds = isLiked
-      ? currentUser.likesSkillsIds.filter((id) => id !== skillId)
-      : [...currentUser.likesSkillsIds, skillId];
+      ? currentUserLikedSkills.filter((id) => id !== skillId)
+      : [...currentUserLikedSkills, skillId];
 
     // Асинхронное обновление пользователей для автообновления selectPopularUsers в HomePage
     (async () => {
@@ -95,8 +87,8 @@ export const UserSection: FC<UserSectionProps> = ({
     };
   });
 
-  const preparedUsers: PreparedUser[] = usersWithSkillDate
-    .map((user) => {
+  const preparedUsers: PreparedUser[] = filterPreparedUsers(
+    usersWithSkillDate.map((user) => {
       const age = getAgeFromBirthDate(user.birthDate);
       const canTeach = getSkillTitle(user.userSkill, skills);
       const wantsToLearn = getSubcategoryNames(
@@ -110,19 +102,8 @@ export const UserSection: FC<UserSectionProps> = ({
         canTeach,
         wantsToLearn,
       };
-    })
-    .filter((user): user is PreparedUser => {
-      return (
-        Boolean(user.name?.trim()) &&
-        Boolean(user.city?.trim()) &&
-        user.age !== null &&
-        user.age >= 14 &&
-        user.userSkill !== null &&
-        user.userSkill !== undefined &&
-        Boolean(user.canTeach?.trim()) &&
-        user.wantsToLearn.length > 0
-      );
-    });
+    }),
+  );
 
   if (preparedUsers.length === 0) {
     return (
@@ -147,11 +128,11 @@ export const UserSection: FC<UserSectionProps> = ({
     avatar: user.avatar,
     name: user.name,
     city: user.city,
-    age: user.age,
+    age: user.age ?? 0,
     canTeach: user.canTeach,
     wantsToLearn: user.wantsToLearn,
     isFavorite: currentUser
-      ? currentUser.likesSkillsIds.includes(user.userSkill)
+      ? currentUserLikedSkills.includes(user.userSkill)
       : false,
     onFavoriteClick: () => handleFavoriteClick(user.userSkill),
     teachColor: getTeachColor(

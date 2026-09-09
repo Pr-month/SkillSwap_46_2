@@ -9,20 +9,56 @@ interface ApiResponse<T> {
   data: T;
 }
 
-// GET /users
-export const getUsers = (): Promise<IUserProfile[]> => {
+const normalizeInterestedSkillIds = (user: any): TId[] => {
+  const raw = user?.interestedSkillsSubcategoriesIds ?? user?.wantToLearn ?? [];
+
+  if (!Array.isArray(raw)) return [];
+
+  return raw
+    .map((item) => (typeof item === "string" ? item : item?.id ?? item?.skillCategoryId))
+    .filter((value): value is TId => Boolean(value));
+};
+
+const normalizeCity = (city: any): string => {
+  if (!city) return "";
+  if (typeof city === "string") return city;
+  if (typeof city === "object" && "name" in city) return String(city.name ?? "");
+  return "";
+};
+
+const normalizeUserCard = (skill: any): IUserProfile => ({
+  id: skill.user?.id ?? skill.userId ?? skill.id,
+  email: skill.user?.email ?? "",
+  name: skill.user?.name ?? "Пользователь",
+  birthDate: skill.user?.birthDate ?? skill.user?.birthdate ?? "2000-01-01",
+  gender: skill.user?.gender ?? "unspecified",
+  city: normalizeCity(skill.user?.city),
+  avatar: skill.user?.avatar ?? "",
+  aboutMe: skill.user?.about ?? skill.user?.aboutMe ?? "",
+  likesSkillsIds: skill.user?.likesSkillsIds ?? [],
+  userSkill: skill.id,
+  interestedSkillsSubcategoriesIds: normalizeInterestedSkillIds(skill.user),
+  createdAt: skill.createdAt ?? new Date().toISOString(),
+  updatedAt: skill.updatedAt ?? skill.createdAt ?? new Date().toISOString(),
+});
+
+// GET /skills — главная страница рендерится из карточек навыков, поэтому
+// в state.user.list мы кладём уже приведённый к карточному формату объект пользователя.
+export const getUsers = async (): Promise<IUserProfile[]> => {
   if (USE_MOCKS) {
-    return fetch("/users.json")
+    return fetch("/skills.json")
       .then((res) => res.json())
-      .then((response) => response.data);
+      .then((response) => (response.data ?? []).map(normalizeUserCard));
   }
-  return request<ApiResponse<IUserProfile[]>>("/users").then(
-    (response: { status: boolean; data: IUserProfile[] }) => response.data,
-  );
+
+  const response = await request<{ data?: any[] } | any[]>("/skills");
+  const skills = Array.isArray(response) ? response : response?.data ?? [];
+
+  return skills.map(normalizeUserCard);
 };
 
 // GET /users/:id
-export const getUserById = (id: TId): Promise<IUserProfile> => {
+export const getUserById = async (id: TId): Promise<IUserProfile> => {
   if (USE_MOCKS) {
     return fetch("/users.json")
       .then((res) => res.json())
@@ -32,16 +68,19 @@ export const getUserById = (id: TId): Promise<IUserProfile> => {
         return user;
       });
   }
-  return request<ApiResponse<IUserProfile>>(`/users/${id}`).then(
-    (response: { status: boolean; data: IUserProfile }) => response.data,
+
+  const response = await request<IUserProfile | { data: IUserProfile }>(
+    `/users/${id}`,
   );
+
+  return "data" in response ? response.data : response;
 };
 
 // PATCH /users/:id (требует токен)
 export const updateUser = (
   id: string,
   payload: Partial<IUserProfile>,
-  token?: string,
+  token: string,
 ): Promise<IUserProfile> => {
   if (USE_MOCKS) {
     return fetch("/users.json")
@@ -57,14 +96,14 @@ export const updateUser = (
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify(payload),
   }).then((response: { status: boolean; data: IUserProfile }) => response.data);
 };
 
 // DELETE /users/:id (требует токен)
-export const deleteUser = (id: TId, token?: string): Promise<void> => {
+export const deleteUser = (id: TId, token: string): Promise<void> => {
   if (USE_MOCKS) {
     return fetch("/users.json")
       .then((res) => res.json())
@@ -78,7 +117,7 @@ export const deleteUser = (id: TId, token?: string): Promise<void> => {
   return request<void>(`/users/${id}`, {
     method: "DELETE",
     headers: {
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      Authorization: `Bearer ${token}`,
     },
   });
 };

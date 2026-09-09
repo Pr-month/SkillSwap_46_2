@@ -67,9 +67,13 @@ export const fetchUpdateCurrentUser = createAsyncThunk(
     const state = getState() as { auth: AuthState };
     const { currentUser } = state.auth;
     const token = tokenService.get();
-    if (!currentUser?.id) return rejectWithValue("Не найден id пользователя");
+
+    if (!currentUser?.id || !token) {
+      return rejectWithValue("Не найден id пользователя или токен");
+    }
+
     try {
-      return await updateUser(currentUser.id, payload, token ?? undefined);
+      return await updateUser(currentUser.id, payload, token);
     } catch (err) {
       return rejectWithValue(err);
     }

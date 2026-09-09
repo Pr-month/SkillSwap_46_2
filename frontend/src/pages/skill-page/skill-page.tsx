@@ -159,7 +159,7 @@ export function SkillPage() {
   );
 
   const isFavorite =
-    currentUser?.likesSkillsIds.includes(selectedUser.userSkill) ?? false;
+    (currentUser?.likesSkillsIds ?? []).includes(selectedUser.userSkill) ?? false;
 
   const isOwnProfile = currentUser?.id === selectedUser?.id;
 
@@ -220,11 +220,12 @@ export function SkillPage() {
 
     setIsTogglingFavorite(true);
 
-    const isLiked = currentUser.likesSkillsIds.includes(skillId);
+    const likedSkills = currentUser.likesSkillsIds ?? [];
+    const isLiked = likedSkills.includes(skillId);
 
     const nextLikesSkillsIds = isLiked
-      ? currentUser.likesSkillsIds.filter((id) => id !== skillId)
-      : [...currentUser.likesSkillsIds, skillId];
+      ? likedSkills.filter((id) => id !== skillId)
+      : [...likedSkills, skillId];
 
     try {
       await dispatch(

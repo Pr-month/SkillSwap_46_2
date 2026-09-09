@@ -18,17 +18,34 @@ export const selectUserLoading = (state: RootState) => state.user.loading;
 export const selectUserError = (state: RootState) => state.user.error;
 
 export const selectPopularUsers = createSelector(selectUsers, (users) => {
-  const likesCount = users
-    .flatMap((u) => u.likesSkillsIds)
-    .reduce<Record<string, number>>((acc, skillId) => {
-      acc[skillId] = (acc[skillId] ?? 0) + 1;
-      return acc;
-    }, {});
+  const skillLikeCounts = new Map<string, number>();
+
+  users.forEach((user) => {
+    if (!user.userSkill) return;
+    skillLikeCounts.set(user.userSkill, 0);
+  });
+
+  users.forEach((user) => {
+    if (!user.userSkill) return;
+    user.likesSkillsIds.forEach((likedSkillId) => {
+      if (!skillLikeCounts.has(likedSkillId)) {
+        skillLikeCounts.set(likedSkillId, 0);
+      }
+      skillLikeCounts.set(
+        likedSkillId,
+        (skillLikeCounts.get(likedSkillId) ?? 0) + 1,
+      );
+    });
+  });
+
   return [...users]
-    .sort(
-      (a, b) => (likesCount[b.userSkill] ?? 0) - (likesCount[a.userSkill] ?? 0),
-    )
-    .slice(0, 9);
+    .map((user) => ({
+      ...user,
+      popularity: user.userSkill ? skillLikeCounts.get(user.userSkill) ?? 0 : 0,
+    }))
+    .sort((a, b) => b.popularity - a.popularity)
+    .slice(0, 9)
+    .map(({ popularity, ...user }) => user);
 });
 
 export const selectNewestUsers = createSelector(selectUsers, (users) => {
@@ -39,7 +56,7 @@ export const selectNewestUsers = createSelector(selectUsers, (users) => {
     now.getDate(),
   );
 
-  return users.filter((user) => new Date(user.createdAt) >= oneMonthAgo); // Только за последний месяц
+  return users.filter((user) => new Date(user.createdAt) >= oneMonthAgo);
 });
 
 export const selectRecommendedUsers = createSelector(

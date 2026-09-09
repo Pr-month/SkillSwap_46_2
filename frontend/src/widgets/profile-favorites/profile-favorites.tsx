@@ -54,9 +54,8 @@ export const ProfileFavorites: FC = () => {
       return;
     }
 
-    const nextLikesSkillsIds = currentUser.likesSkillsIds.filter(
-      (id) => id !== skillId,
-    );
+    const likedSkills = currentUser.likesSkillsIds ?? [];
+    const nextLikesSkillsIds = likedSkills.filter((id) => id !== skillId);
 
     dispatch(fetchUpdateCurrentUser({ likesSkillsIds: nextLikesSkillsIds }));
   };
@@ -92,7 +91,7 @@ export const ProfileFavorites: FC = () => {
   }
 
   const favoriteUsers: PreparedUser[] = users
-    .filter((user) => currentUser.likesSkillsIds.includes(user.userSkill))
+    .filter((user) => (currentUser.likesSkillsIds ?? []).includes(user.userSkill))
     .map((user) => {
       const age = getAgeFromBirthDate(user.birthDate);
       const canTeach = getSkillTitle(user.userSkill, skills);
