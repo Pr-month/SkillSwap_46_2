@@ -9,7 +9,6 @@ import {
   fetchUpdateCurrentUser,
   fetchCheckUser,
 } from "./actions";
-import { tokenService } from "../../utils/tokenService";
 import type { IUserProfile, IRealUserMeResponse } from "../../utils/types";
 
 // Мокаем tokenService
@@ -229,14 +228,31 @@ describe("authSlice", () => {
       expect(state.loading).toBe(true);
     });
 
-    it("fulfilled: currentUser обновлён", () => {
-      const updatedUser = { ...mockUser, name: "Updated Name" };
+    it("fulfilled: currentUser маппится из реальной формы", () => {
+      const updatedRealUser = { ...mockRealUser, name: "Updated Name" };
       const state = authReducer(
         { ...initialState, loading: true, currentUser: mockUser },
-        fetchUpdateCurrentUser.fulfilled(updatedUser, "", {}),
+        fetchUpdateCurrentUser.fulfilled(
+          updatedRealUser as unknown as IUserProfile,
+          "",
+          {},
+        ),
       );
       expect(state.loading).toBe(false);
-      expect(state.currentUser).toEqual(updatedUser);
+      expect(state.currentUser).toEqual({
+        id: "user-1",
+        email: "test@test.com",
+        name: "Updated Name",
+        birthDate: "2000-01-01",
+        gender: "MALE",
+        city: "Moscow",
+        avatar: "avatar.png",
+        likesSkillsIds: [],
+        userSkill: "",
+        interestedSkillsSubcategoriesIds: [],
+        createdAt: "2024-01-01T00:00:00.000Z",
+        updatedAt: "2024-01-01T00:00:00.000Z",
+      });
     });
 
     it("rejected: loading=false, error заполнен", () => {
