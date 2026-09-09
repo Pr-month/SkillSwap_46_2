@@ -41,7 +41,7 @@ export const getUserById = (id: TId): Promise<IUserProfile> => {
 export const updateUser = (
   id: string,
   payload: Partial<IUserProfile>,
-  token: string,
+  token?: string,
 ): Promise<IUserProfile> => {
   if (USE_MOCKS) {
     return fetch("/users.json")
@@ -57,14 +57,14 @@ export const updateUser = (
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
     body: JSON.stringify(payload),
   }).then((response: { status: boolean; data: IUserProfile }) => response.data);
 };
 
 // DELETE /users/:id (требует токен)
-export const deleteUser = (id: TId, token: string): Promise<void> => {
+export const deleteUser = (id: TId, token?: string): Promise<void> => {
   if (USE_MOCKS) {
     return fetch("/users.json")
       .then((res) => res.json())
@@ -78,7 +78,7 @@ export const deleteUser = (id: TId, token: string): Promise<void> => {
   return request<void>(`/users/${id}`, {
     method: "DELETE",
     headers: {
-      Authorization: `Bearer ${token}`,
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
   });
 };

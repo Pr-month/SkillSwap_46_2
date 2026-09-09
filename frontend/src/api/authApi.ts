@@ -72,15 +72,17 @@ export const checkUser = async (data: TLoginUserData): Promise<void> => {
   return resp;
 };
 
-// GET /auth/profile
+// GET /users/me
 export const getProfile = async (): Promise<IUserProfile> => {
   if (USE_MOCKS) {
     const response = await fetch("/users.json").then((res) => res.json());
     return response.data[0]; // в моках возвращаем первого юзера
   }
 
-  const response = await request<{ data: IUserProfile }>("/auth/profile");
-  return response.data;
+  const response = await request<IUserProfile>("/users/me", {
+    method: "GET",
+  });
+  return response;
 };
 
 // PATCH /auth/password

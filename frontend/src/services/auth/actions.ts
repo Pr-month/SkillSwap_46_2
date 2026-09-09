@@ -53,8 +53,6 @@ export const fetchCheckUser = createAsyncThunk(
 export const fetchProfile = createAsyncThunk(
   "auth/profile",
   async (_, { rejectWithValue }) => {
-    const token = tokenService.get();
-    if (!token) return rejectWithValue("Токен не найден");
     try {
       return await getProfile();
     } catch (err) {
@@ -69,10 +67,9 @@ export const fetchUpdateCurrentUser = createAsyncThunk(
     const state = getState() as { auth: AuthState };
     const { currentUser } = state.auth;
     const token = tokenService.get();
-    if (!token) return rejectWithValue("Токен не найден");
     if (!currentUser?.id) return rejectWithValue("Не найден id пользователя");
     try {
-      return await updateUser(currentUser.id, payload, token);
+      return await updateUser(currentUser.id, payload, token ?? undefined);
     } catch (err) {
       return rejectWithValue(err);
     }
@@ -83,8 +80,6 @@ export const fetchUpdateCurrentUser = createAsyncThunk(
 export const updatePassword = createAsyncThunk(
   "auth/update-password",
   async (newPassword: string, { rejectWithValue }) => {
-    const token = tokenService.get();
-    if (!token) return rejectWithValue("Токен не найден");
     try {
       await changePassword(newPassword);
       return newPassword;
