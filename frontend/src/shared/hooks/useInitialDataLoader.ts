@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "../../services/store";
-import { fetchUsers } from "../../services/user/actions";
-import { fetchSkills } from "../../services/skill/actions";
+import { fetchSkillFeed } from "../../services/skillFeed/actions";
 import {
   fetchCategories,
   fetchSubCategories,
@@ -15,8 +14,7 @@ export const useInitialDataLoader = () => {
   const receivedRequests = useSelector((state) => state.requests.received);
 
   useEffect(() => {
-    dispatch(fetchUsers());
-    dispatch(fetchSkills());
+    dispatch(fetchSkillFeed({ page: 1, limit: 50 }));
     dispatch(fetchCategories());
     dispatch(fetchSubCategories());
 
