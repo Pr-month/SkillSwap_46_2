@@ -25,7 +25,7 @@ export class UsersService {
   ) { }
 
   async findAll(dto: FindUsersDto) {
-    const { page, limit } = dto;
+    const { page = 1, limit = 20 } = dto;
 
     const [data, total] = await this.userRepository.findAndCount({
       select: {
