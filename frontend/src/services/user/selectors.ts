@@ -26,7 +26,9 @@ export const selectPopularUsers = createSelector(selectUsers, (users) => {
     }, {});
   return [...users]
     .sort(
-      (a, b) => (likesCount[b.userSkill] ?? 0) - (likesCount[a.userSkill] ?? 0),
+      (a, b) =>
+        (likesCount[b.userSkill ?? ""] ?? 0) -
+        (likesCount[a.userSkill ?? ""] ?? 0),
     )
     .slice(0, 9);
 });
@@ -39,7 +41,10 @@ export const selectNewestUsers = createSelector(selectUsers, (users) => {
     now.getDate(),
   );
 
-  return users.filter((user) => new Date(user.createdAt) >= oneMonthAgo); // Только за последний месяц
+  return users.filter(
+    (user) =>
+      !!user.createdAt && new Date(user.createdAt).getTime() >= oneMonthAgo.getTime(),
+  ); // Только за последний месяц
 });
 
 export const selectRecommendedUsers = createSelector(
@@ -112,7 +117,7 @@ const createFilteredUsersSelector = (
           (matchingIds === null ||
             !user.userSkill ||
             matchingIds.includes(user.userSkill)) &&
-          !excludeIds.includes(user.userSkill),
+          !excludeIds.includes(user.userSkill ?? ""),
       );
     },
   );
