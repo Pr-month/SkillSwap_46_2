@@ -47,7 +47,7 @@ export interface ISkillsCategory {
  * 2. Пользователь может выбрать НЕСКОЛЬКО НАВЫКОВ, которым хочет НАУЧИТЬСЯ, ИЗ РАЗНЫХ КАТЕГОРИЙ.
  */
 export interface ISkill {
-  id?: TId;
+  id: TId;
   title: string;
   description: string;
   skillSubcategory: TId;
@@ -55,6 +55,16 @@ export interface ISkill {
   userId: TId;
   createdAt: string; // дата создания навыка
   updatedAt: string; // дата обновления навыка
+}
+
+export interface ISkillBackend {
+  id: TId;
+  title: string;
+  description: string;
+  images: string[];
+  user: IUserProfile;
+  category: ISkillsCategory;
+  createdAt: string;
 }
 
 //! ======= API =======
