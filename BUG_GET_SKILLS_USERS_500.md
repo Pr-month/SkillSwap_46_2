@@ -19,25 +19,25 @@
 - Остальные e2e (`app`, `auth`, `cities`, `files`, `categories`) — проходят (54 из 58 тестов зелёные).
 - Сидинг при этом **работает**: создаются 1134 города, категории, админ, **2 пользователя**, **4 навыка** (`Seeded 2 users`, `Seeded 4 skills`). То есть данные в БД есть, но списковые эндпоинты всё равно падают.
 
-## Затронутый код
-- `backend/src/skills/skills.service.ts` → метод `findAll()` (использует `createQueryBuilder` с `select` + `leftJoinAndSelect('user.wantToLearn')` / `user.city`).
-- `backend/src/users/users.service.ts` → метод `findAll()` (использует `findAndCount` с `select` перечнем полей).
+## Причина (найдена и устранена)
+Корневая причина — **не пагинационный SQL**, а то, что e2e-приложение создаётся в тестах **без `ValidationPipe`** (`main.ts` применяет его с `transform: true`, но в `test/*.e2e-spec.ts` вызывается только `app.useGlobalFilters(new AllExceptionFilter())`).
 
-## Вероятные причины (нужно подтвердить по стеку)
-Причина в коде сервисов, а не в данных/CI. Кандидаты:
-1. **`SkillsService.findAll`**: конфликт между `.select([...])` и `.leftJoinAndSelect('user.city'/'user.wantToLearn')` в одном `createQueryBuilder`, из-за чего генерируется некорректный SQL (или обращение к `skill.user.wantToLearn.map(...)`, если связь приходит как `null`).
-2. **`UsersService.findAll`**: `findAndCount` с `select` по полям (`gender`, `role`, `birthdate`) может спотыкаться на enum/отношениях; возможно нужны `relations` или другой способ выборки.
+Без pipe дефолтные значения DTO (`page = 1`, `limit = 20`, `search = ''`) **не подставляются**, поэтому при `GET /skills` и `GET /users` без query-параметров `dto` приходит пустым. В сервисах:
+- `SkillsService.findAll`: `const { page, limit, search } = dto` → `undefined`;
+- `UsersService.findAll`: `const { page, limit } = dto` → `undefined`;
 
-## Как воспроизвести
-```bash
-cd backend
-npm run test:e2e:all   # требуется тестовая БД skillswap_test (см. .env.test.local.example)
-```
+и вычисление `(page - 1) * limit` даёт `NaN`, из-за чего TypeORM строит `OFFSET NaN` → `QueryFailedError` → **500**.
 
-## Рекомендация по диагностике
-1. Включить вывод стека ошибки: во время прогона посмотреть тело 500 (например, временно залогировать `error.stack` во `AllExceptionFilter`, или в тесте вывести `res.body`/`res.error` вместо `expect(200)`).
-2. Запустить `GET /skills` и `GET /users` вручную против тестовой БД и посмотреть реальное сообщение об ошибке.
-3. Исправить соответствующий `findAll`, затем повторно прогнать `npm run test:e2e:all`.
+Именно поэтому падают только эндпоинты, считающие пагинацию по `(page-1)*limit` (skills, users), а `cities`, `categories`, `files`, `auth` (без пагинации) проходят.
+
+### Исправление
+В обоих сервисах добавлены дефолтные значения при деструктуризации (сервис больше не зависит от наличия `ValidationPipe`):
+- `backend/src/skills/skills.service.ts` → `const { page = 1, limit = 20, search = '' } = dto;`
+- `backend/src/users/users.service.ts` → `const { page = 1, limit = 20 } = dto;`
+
+Это безопаснее, чем полагаться только на DTO: работает и в production, и в e2e, и при прямом вызове сервиса. Повторный прогон `npm run test:e2e:all` должен стать зелёным (проверяется в CI).
+
+> Альтернатива: добавить `new ValidationPipe({ transform: true })` в каждый e2e-спецификации (зеркально `main.ts`), но это потребовало бы правок во всех e2e-файлах, тогда как дефолты в сервисах решают проблему локально и навсегда.
 
 ---
 
