@@ -13,6 +13,7 @@ import * as authApi from "../../api/authApi";
 import * as userApi from "../../api/userApi";
 import type {
   IUserProfile,
+  IRealUserMeResponse,
   TLoginUserResponse,
   TRegisterResponse,
 } from "../../utils/types";
@@ -38,7 +39,7 @@ const mockUser: IUserProfile = {
   email: "test@test.com",
   name: "Test User",
   birthDate: "2000-01-01",
-  gender: "male",
+  gender: "MALE",
   city: "Moscow",
   avatar: "avatar.png",
   likesSkillsIds: [],
@@ -46,6 +47,18 @@ const mockUser: IUserProfile = {
   interestedSkillsSubcategoriesIds: [],
   createdAt: "2024-01-01T00:00:00.000Z",
   updatedAt: "2024-01-01T00:00:00.000Z",
+};
+
+const mockRealUser: IRealUserMeResponse = {
+  id: "user-1",
+  email: "test@test.com",
+  name: "Test User",
+  about: null,
+  birthdate: "2000-01-01",
+  gender: "MALE",
+  avatar: "avatar.png",
+  role: "USER",
+  city: { id: "city-1", name: "Moscow", region: "Moscow" },
 };
 
 const createTestStore = (preloadedAuth?: Partial<AuthState>) =>
@@ -74,7 +87,7 @@ describe("auth thunks", () => {
       email: "test@test.com",
       name: "Test",
       birthDate: "2000-01-01",
-      gender: "male" as const,
+      gender: "MALE" as const,
       city: "Moscow",
       avatar: "avatar.png",
       password: "123456",
@@ -181,13 +194,26 @@ describe("auth thunks", () => {
   describe("fetchProfile", () => {
     it("fulfilled: при наличии токена загружает профиль", async () => {
       (tokenService.get as jest.Mock).mockReturnValue("valid-token");
-      mockedAuthApi.getProfile.mockResolvedValue(mockUser);
+      mockedAuthApi.getProfile.mockResolvedValue(mockRealUser);
 
       const store = createTestStore();
       await store.dispatch(fetchProfile());
 
       expect(mockedAuthApi.getProfile).toHaveBeenCalled();
-      expect(store.getState().auth.currentUser).toEqual(mockUser);
+      expect(store.getState().auth.currentUser).toEqual({
+        id: "user-1",
+        email: "test@test.com",
+        name: "Test User",
+        birthDate: "2000-01-01",
+        gender: "MALE",
+        city: "Moscow",
+        avatar: "avatar.png",
+        likesSkillsIds: [],
+        userSkill: "",
+        interestedSkillsSubcategoriesIds: [],
+        createdAt: "",
+        updatedAt: "",
+      });
     });
 
     it('rejected: без токена → rejectWithValue "Токен не найден"', async () => {

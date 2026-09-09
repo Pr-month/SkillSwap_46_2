@@ -1,15 +1,16 @@
 import { describe, expect, jest, it } from "@jest/globals";
-import authReducer, { logout } from "./slice";
+import authReducer from "./slice";
 import type { AuthState } from "./types";
 import {
   fetchRegister,
   fetchLogin,
+  fetchLogout,
   fetchProfile,
   fetchUpdateCurrentUser,
   fetchCheckUser,
 } from "./actions";
 import { tokenService } from "../../utils/tokenService";
-import type { IUserProfile } from "../../utils/types";
+import type { IUserProfile, IRealUserMeResponse } from "../../utils/types";
 
 // Мокаем tokenService
 jest.mock("../../utils/tokenService", () => ({
@@ -25,7 +26,7 @@ const mockUser: IUserProfile = {
   email: "test@test.com",
   name: "Test User",
   birthDate: "2000-01-01",
-  gender: "male",
+  gender: "MALE",
   city: "Moscow",
   avatar: "avatar.png",
   likesSkillsIds: [],
@@ -33,6 +34,18 @@ const mockUser: IUserProfile = {
   interestedSkillsSubcategoriesIds: [],
   createdAt: "2024-01-01T00:00:00.000Z",
   updatedAt: "2024-01-01T00:00:00.000Z",
+};
+
+const mockRealUser: IRealUserMeResponse = {
+  id: "user-1",
+  email: "test@test.com",
+  name: "Test User",
+  about: null,
+  birthdate: "2000-01-01",
+  gender: "MALE",
+  avatar: "avatar.png",
+  role: "USER",
+  city: { id: "city-1", name: "Moscow", region: "Moscow" },
 };
 
 const initialState: AuthState = {
@@ -51,17 +64,19 @@ describe("authSlice", () => {
   });
 
   // logout
-  describe("logout", () => {
-    it("должен сбросить currentUser и удалить токен", () => {
+  describe("fetchLogout", () => {
+    it("fulfilled: сбрасывает currentUser", () => {
       const stateWithUser: AuthState = {
         ...initialState,
         currentUser: mockUser,
       };
 
-      const state = authReducer(stateWithUser, logout());
+      const state = authReducer(
+        stateWithUser,
+        fetchLogout.fulfilled(undefined, "", undefined),
+      );
 
       expect(state.currentUser).toBeNull();
-      expect(tokenService.remove).toHaveBeenCalled();
     });
   });
 
@@ -169,13 +184,26 @@ describe("authSlice", () => {
       expect(state.loading).toBe(true);
     });
 
-    it("fulfilled: currentUser = payload напрямую", () => {
+    it("fulfilled: currentUser маппится из реальной формы", () => {
       const state = authReducer(
         { ...initialState, loading: true },
-        fetchProfile.fulfilled(mockUser, "", undefined),
+        fetchProfile.fulfilled(mockRealUser, "", undefined),
       );
       expect(state.loading).toBe(false);
-      expect(state.currentUser).toEqual(mockUser);
+      expect(state.currentUser).toEqual({
+        id: "user-1",
+        email: "test@test.com",
+        name: "Test User",
+        birthDate: "2000-01-01",
+        gender: "MALE",
+        city: "Moscow",
+        avatar: "avatar.png",
+        likesSkillsIds: [],
+        userSkill: "",
+        interestedSkillsSubcategoriesIds: [],
+        createdAt: "",
+        updatedAt: "",
+      });
     });
 
     it("rejected: loading=false, error заполнен", () => {
