@@ -32,7 +32,7 @@ services:
       dockerfile: Dockerfile
     container_name: skillswap-backend
     env_file:
-      - ./backend/.env
+      - ./backend/.env.docker
     ports:
       - "3000:3000"
     depends_on:
@@ -57,7 +57,7 @@ services:
       dockerfile: Dockerfile
     container_name: skillswap-frontend
     env_file:
-      - ./frontend/.env
+      - ./frontend/.env.docker
     ports:
       - "5173:5173"
     depends_on:
