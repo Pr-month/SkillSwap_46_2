@@ -1,12 +1,18 @@
 import { Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { MailerService } from '@nestjs-modules/mailer';
-import { SendEmailDto } from './dto/send-email.dto';
 import { mailConfig } from '../config/mail.config';
 import type { TMailConfig } from '../config/mail.config';
 
 export interface NotificationPayload {
   subject: string;
   text: string;
+}
+
+export interface SendEmailOptions {
+  to: string;
+  subject: string;
+  text?: string;
+  html?: string;
 }
 
 @Injectable()
@@ -51,7 +57,7 @@ export class MailService implements OnModuleInit {
     }
   }
 
-  async sendEmail(dto: SendEmailDto): Promise<void> {
+  async sendEmail(options: SendEmailOptions): Promise<void> {
     const { maxRetries, delayMs } = this.config.retry;
 
     let lastError: unknown;
@@ -59,10 +65,10 @@ export class MailService implements OnModuleInit {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         await this.mailerService.sendMail({
-          to: dto.to,
-          subject: dto.subject,
-          text: dto.text,
-          html: dto.html,
+          to: options.to,
+          subject: options.subject,
+          text: options.text,
+          html: options.html,
         });
 
         return;
@@ -88,7 +94,7 @@ export class MailService implements OnModuleInit {
     email: string,
     payload: NotificationPayload,
   ): Promise<void> {
-    await this.mailerService.sendMail({
+    await this.sendEmail({
       to: email,
       subject: payload.subject,
       text: payload.text,
