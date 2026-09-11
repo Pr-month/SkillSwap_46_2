@@ -48,8 +48,7 @@ jobs:
         run: npm run lint
 
   unit-tests:
-    name: Run Unit Tests (backend, only on PR to main)
-    if: github.base_ref == 'main'
+    name: Run Unit Tests (backend)
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -69,9 +68,29 @@ jobs:
       - name: Run unit tests
         run: npm run test
 
+  unit-tests-frontend:
+    name: Run Unit Tests (frontend)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run unit tests
+        run: npm run test
+
   e2e-tests:
-    name: Run E2E Tests (backend, only on PR to main)
-    if: github.base_ref == 'main'
+    name: Run E2E Tests (backend)
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -83,7 +102,7 @@ jobs:
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: postgres
+          POSTGRES_DB: skillswap_test
         ports:
           - 5432:5432
         options: >-
@@ -93,8 +112,20 @@ jobs:
           --health-retries=5
 
     env:
-      DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres
       NODE_ENV: test
+      DB_DRIVER: postgres
+      DB_HOST: localhost
+      DB_PORT: 5432
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: skillswap_test
+      DB_SYNC: 'true'
+      JWT_ACCESS_SECRET: ci-test-access-secret
+      JWT_ACCESS_EXPIRES_IN: 3600
+      JWT_REFRESH_SECRET: ci-test-refresh-secret
+      JWT_REFRESH_EXPIRES_IN: 604800
+      ADMIN_EMAIL: admin@example.com
+      ADMIN_PASSWORD: admin12345
 
     steps:
       - name: Checkout code
@@ -109,4 +140,4 @@ jobs:
         run: npm ci
 
       - name: Run e2e tests
-        run: npm run test:e2e
+        run: npm run test:e2e:all

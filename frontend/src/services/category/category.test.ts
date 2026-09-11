@@ -17,12 +17,16 @@ describe("categorySlice reducer", () => {
     id: "1",
     name: "name1",
     subcategories: [],
+    wantToLearnUsers: [],
+    skills: [],
   };
 
   const category2 = {
     id: "2",
     name: "name2",
     subcategories: [],
+    wantToLearnUsers: [],
+    skills: [],
   };
 
   const subCategory1 = {

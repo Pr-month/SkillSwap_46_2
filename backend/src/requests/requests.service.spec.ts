@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { getRepositoryToken } from '@nestjs/typeorm';
 import { RequestsService } from './requests.service';
 import { MailService } from '../mail/mail.service';
-import { getRepositoryToken } from '@nestjs/typeorm';
 import { Request } from './entities/request.entity';
 import { Skill } from '../skills/entities/skill.entity';
 

@@ -21,6 +21,8 @@ const mapCategory = (category: IBackendCategory): ISkillsCategory => ({
     name: child.name,
     skillCategoryId: category.id,
   })),
+  wantToLearnUsers: [],
+  skills: [],
 });
 
 export const getCategories = (): Promise<ISkillsCategory[]> => {

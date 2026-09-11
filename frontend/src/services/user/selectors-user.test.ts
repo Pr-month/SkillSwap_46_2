@@ -24,7 +24,7 @@ const makeUser = (
   email: `${overrides.id}@test.com`,
   name: overrides.id,
   birthDate: "2000-01-01",
-  gender: "unspecified",
+  gender: "UNSPECIFIED",
   city: "Moscow",
   avatar: "a.png",
   likesSkillsIds: [],
@@ -310,8 +310,8 @@ describe("selectFilteredBySkillTitle", () => {
 
   it("фильтрует по gender", () => {
     const usersWithGender = [
-      makeUser({ id: "u1", userSkill: "skill-1", gender: "male" }),
-      makeUser({ id: "u2", userSkill: "skill-2", gender: "female" }),
+      makeUser({ id: "u1", userSkill: "skill-1", gender: "MALE" }),
+      makeUser({ id: "u2", userSkill: "skill-2", gender: "FEMALE" }),
     ];
     const state = buildState({
       users: usersWithGender,
