@@ -1,60 +1,39 @@
 import { USE_MOCKS } from "../config/apiConfig";
 import { request } from "./client";
-import type { IUserProfile } from "../utils/types";
+import type { IUserProfile, IUserProfileOnBackend } from "../utils/types";
 import type { TId } from "../utils/types";
 import type { IUpdateProfileData, IWantToLearnCategory } from "../utils/types";
-
 interface ApiResponse<T> {
   status: boolean;
   data: T;
 }
 
-const normalizeInterestedSkillIds = (user: any): TId[] => {
-  const raw = user?.interestedSkillsSubcategoriesIds ?? user?.wantToLearn ?? [];
-
-  if (!Array.isArray(raw)) return [];
-
-  return raw
-    .map((item) => (typeof item === "string" ? item : item?.id ?? item?.skillCategoryId))
-    .filter((value): value is TId => Boolean(value));
-};
-
-const normalizeCity = (city: any): string => {
-  if (!city) return "";
-  if (typeof city === "string") return city;
-  if (typeof city === "object" && "name" in city) return String(city.name ?? "");
-  return "";
-};
-
-const normalizeUserCard = (skill: any): IUserProfile => ({
-  id: skill.user?.id ?? skill.userId ?? skill.id,
-  email: skill.user?.email ?? "",
-  name: skill.user?.name ?? "Пользователь",
-  birthDate: skill.user?.birthDate ?? skill.user?.birthdate ?? "2000-01-01",
-  gender: skill.user?.gender ?? "unspecified",
-  city: normalizeCity(skill.user?.city),
-  avatar: skill.user?.avatar ?? "",
-  aboutMe: skill.user?.about ?? skill.user?.aboutMe ?? "",
-  likesSkillsIds: skill.user?.likesSkillsIds ?? [],
-  userSkill: skill.id,
-  interestedSkillsSubcategoriesIds: normalizeInterestedSkillIds(skill.user),
-  createdAt: skill.createdAt ?? new Date().toISOString(),
-  updatedAt: skill.updatedAt ?? skill.createdAt ?? new Date().toISOString(),
+const formatUser = (user: IUserProfileOnBackend): IUserProfile => ({
+  id: user.id,
+  email: user.email,
+  name: user.name ?? "",
+  birthDate: user.birthdate ?? "",
+  gender: user.gender ?? "UNSPECIFIED",
+  city: user.city?.name ?? "",
+  avatar: user.avatar ?? "",
+  aboutMe: user.about ?? "",
+  likesSkillsIds: user.favoriteSkills?.map((skill) => skill.id) ?? [],
+  userSkill: undefined,
+  interestedSkillsSubcategoriesIds:
+    user.wantToLearn?.map((category) => category.id) ?? [],
 });
 
-// GET /skills — главная страница рендерится из карточек навыков, поэтому
-// в state.user.list мы кладём уже приведённый к карточному формату объект пользователя.
-export const getUsers = async (): Promise<IUserProfile[]> => {
+// GET /users
+export const getUsers = (): Promise<IUserProfile[]> => {
   if (USE_MOCKS) {
     return fetch("/skills.json")
       .then((res) => res.json())
-      .then((response) => (response.data ?? []).map(normalizeUserCard));
+      .then((response) => (response.data ?? []));
   }
 
-  const response = await request<{ data?: any[] } | any[]>("/skills");
-  const skills = Array.isArray(response) ? response : response?.data ?? [];
-
-  return skills.map(normalizeUserCard);
+  return request<ApiResponse<IUserProfileOnBackend[]>>("/users").then(
+    (response) => response.data.map(formatUser),
+  );
 };
 
 // GET /users/:id
@@ -68,13 +47,18 @@ export const getUserById = async (id: TId): Promise<IUserProfile> => {
         return user;
       });
   }
-
-  const response = await request<IUserProfile | { data: IUserProfile }>(
-    `/users/${id}`,
+  return request<ApiResponse<IUserProfileOnBackend[]>>(`/users`).then(
+    (response) => {
+      const foundUser = response.data.find((u) => u.id === id);
+      if (!foundUser) {
+        return Promise.reject({ message: "User not found" });
+      }
+      const user = formatUser(foundUser);
+      return user;
+    },
   );
-
-  return "data" in response ? response.data : response;
 };
+
 
 // PATCH /users/:id (требует токен)
 export const updateUser = (

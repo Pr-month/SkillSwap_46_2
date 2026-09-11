@@ -8,6 +8,7 @@ import { UserInfo } from "../../shared/ui/user-info";
 import type { UserInfoProps } from "../../shared/ui/user-info";
 import { ProfileLayout } from "../../widgets/profile-layout/profile-layout";
 import { useImageUpload } from "../../shared/hooks/useImageUpload";
+import { resolveAssetUrl } from "../../shared/lib/resolveAssetUrl";
 
 export const ProfilePage: FC = () => {
   const dispatch = useDispatch();
@@ -89,7 +90,7 @@ export const ProfilePage: FC = () => {
           : null,
         city: currentUser.city,
         about: currentUser.aboutMe ?? "",
-        avatar: currentUser.avatar,
+        avatar: resolveAssetUrl(currentUser.avatar),
       }
     : undefined;
 

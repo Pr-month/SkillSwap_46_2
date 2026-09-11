@@ -1,8 +1,8 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { tokenService } from "../../utils/tokenService.ts";
 import {
   fetchCheckUser,
   fetchLogin,
+  fetchLogout,
   fetchProfile,
   fetchRegister,
   fetchUpdateCurrentUser,
@@ -11,7 +11,7 @@ import {
   updatePassword,
 } from "./actions.ts";
 import type { AuthState } from "./types.ts";
-
+import type { IRealUserMeResponse, IUserProfile } from "../../utils/types.ts";
 const normalizeCurrentUser = (user: any) => {
   if (!user) return null;
 
@@ -30,6 +30,31 @@ const normalizeCurrentUser = (user: any) => {
   };
 };
 
+
+// Реальный GET /users/me отдаёт другую форму, чем IUserProfile (city — объект,
+// нет likesSkillsIds/userSkill/interestedSkillsSubcategoriesIds — эти relations
+// пока не подгружаются этим эндпоинтом, см. чат с бэком). Приводим к тому,
+// что ждёт остальной фронтенд, сохраняя уже известные локальные поля,
+// которых в этом ответе нет (не затираем их дефолтами).
+const mapRealUserToProfile = (
+  user: IRealUserMeResponse,
+  previous: IUserProfile | null,
+): IUserProfile => ({
+  id: user.id,
+  email: user.email,
+  name: user.name ?? "",
+  birthDate: user.birthdate ?? "",
+  gender: (user.gender as IUserProfile["gender"]) ?? previous?.gender,
+  city: user.city?.name ?? "",
+  avatar: user.avatar ?? "",
+  likesSkillsIds: previous?.likesSkillsIds ?? [],
+  userSkill: previous?.userSkill ?? "",
+  interestedSkillsSubcategoriesIds:
+    previous?.interestedSkillsSubcategoriesIds ?? [],
+  createdAt: previous?.createdAt ?? "",
+  updatedAt: previous?.updatedAt ?? "",
+});
+
 const initialState: AuthState = {
   currentUser: null,
   loading: false,
@@ -37,27 +62,22 @@ const initialState: AuthState = {
   checkUserLoading: false,
   checkUserError: null,
 };
-
+ 
 const handlePending = (state: AuthState) => {
   state.loading = true;
   state.error = null;
 };
-
+ 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const handleRejected = (state: AuthState, action: any) => {
   state.loading = false;
   state.error = action.error.message || "Ошибка запроса";
 };
-
+ 
 export const authSlice = createSlice({
   name: "auth",
   initialState,
-  reducers: {
-    logout(state) {
-      state.currentUser = null;
-      tokenService.remove();
-    },
-  },
+  reducers: {},
   extraReducers: (builder) => {
     // register
     builder
@@ -80,7 +100,7 @@ export const authSlice = createSlice({
         });
       })
       .addCase(fetchRegister.rejected, handleRejected)
-
+ 
       // login
       .addCase(fetchLogin.pending, handlePending)
       .addCase(fetchLogin.fulfilled, (state, action) => {
@@ -88,38 +108,44 @@ export const authSlice = createSlice({
         state.currentUser = normalizeCurrentUser(action.payload.user);
       })
       .addCase(fetchLogin.rejected, handleRejected)
-
+ 
+      // logout — куку стирает бэкенд (POST /auth/logout), тут только
+      // локально чистим currentUser после успешного ответа.
+      .addCase(fetchLogout.fulfilled, (state) => {
+        state.currentUser = null;
+      })
+      .addCase(fetchLogout.rejected, handleRejected)
+ 
       // profile
       .addCase(fetchProfile.pending, handlePending)
       .addCase(fetchProfile.fulfilled, (state, action) => {
         state.loading = false;
-        state.currentUser = normalizeCurrentUser(action.payload);
+        state.currentUser = mapRealUserToProfile(
+          action.payload,
+          state.currentUser,
+        );
       })
       .addCase(fetchProfile.rejected, handleRejected)
-
+ 
       // updateCurrentUser
       .addCase(fetchUpdateCurrentUser.pending, handlePending)
       .addCase(fetchUpdateCurrentUser.fulfilled, (state, action) => {
         state.loading = false;
         state.currentUser = normalizeCurrentUser(action.payload);
+        // action.payload — реальная форма User с бэкенда (через
+        // updateMyProfile), не IUserProfile напрямую — та же причина,
+        // что и у fetchProfile.
       })
       .addCase(fetchUpdateCurrentUser.rejected, handleRejected)
-
+ 
       // updateMyProfile (шаг 2 регистрации / редактирование профиля)
       .addCase(fetchUpdateMyProfile.pending, handlePending)
-      .addCase(fetchUpdateMyProfile.fulfilled, (state, action) => {
+      .addCase(fetchUpdateMyProfile.fulfilled, (state) => {
         state.loading = false;
-        // Полная синхронизация currentUser с реальной формой User с бэкенда —
-        // отдельная задача (birthdate/city там в другом формате, чем в
-        // IUserProfile). Но name/avatar — простые строки, синхронизируем
-        // сразу, иначе после регистрации в шапке показывается старое пустое
-        // значение, хотя в базе данные уже сохранены.
-        if (state.currentUser) {
-          const payload = action.payload as { name?: string; avatar?: string };
-          if ("name" in payload) state.currentUser.name = payload.name ?? "";
-          if ("avatar" in payload)
-            state.currentUser.avatar = payload.avatar ?? "";
-        }
+        // Полную синхронизацию currentUser теперь делает fetchProfile
+        // (register-page вызывает его в конце регистрации) — он же
+        // приводит реальную форму User к IUserProfile через
+        // mapRealUserToProfile. Точечный костыль тут больше не нужен.
       })
       .addCase(fetchUpdateMyProfile.rejected, handleRejected)
  
@@ -129,7 +155,7 @@ export const authSlice = createSlice({
         state.loading = false;
       })
       .addCase(fetchUpdateWantToLearn.rejected, handleRejected);
-
+ 
     builder
       .addCase(fetchCheckUser.pending, (state) => {
         state.checkUserLoading = true;
@@ -143,7 +169,7 @@ export const authSlice = createSlice({
         state.checkUserLoading = false;
         state.checkUserError = action.payload;
       })
-
+ 
       // ИЗМЕНЕНИЕ ПАРОЛЯ
       .addCase(updatePassword.pending, (state) => {
         state.loading = true;
@@ -159,6 +185,5 @@ export const authSlice = createSlice({
       });
   },
 });
-
-export const { logout } = authSlice.actions;
+ 
 export default authSlice.reducer;

@@ -3,8 +3,6 @@ import {
   Get,
   Body,
   Patch,
-  Param,
-  Delete,
   Req,
   UseGuards,
   Query,
@@ -20,9 +18,7 @@ import { ApiTags } from '@nestjs/swagger';
 import {
   ApiUsersChangePassword,
   ApiUsersFindAll,
-  ApiUsersFindOne,
   ApiUsersGetMe,
-  ApiUsersRemove,
   ApiUsersUpdateMe,
 } from './users.swagger';
 import { UpdateWantToLearnDto } from './dto/update-want-to-learn.dto';
@@ -65,18 +61,6 @@ export class UsersController {
   changePassword(@Req() req: Request, @Body() dto: ChangePasswordDto) {
     const user = req.user as JwtPayload;
     return this.usersService.changePassword(user.sub, dto);
-  }
-
-  @Get(':id')
-  @ApiUsersFindOne()
-  findOne(@Param('id') id: string) {
-    return this.usersService.findOne(+id);
-  }
-
-  @Delete(':id')
-  @ApiUsersRemove()
-  remove(@Param('id') id: string) {
-    return this.usersService.remove(+id);
   }
 
   @Patch('me/want-to-learn')

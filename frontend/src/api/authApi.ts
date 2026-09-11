@@ -1,16 +1,17 @@
 import { USE_MOCKS } from "../config/apiConfig";
 import { tokenService } from "../utils/tokenService.ts";
 import type {
+  IRealUserMeResponse,
   IUserProfile,
   TLoginUserData,
   TLoginUserResponse,
   TRegisterResponse,
 } from "../utils/types";
 import { api, request } from "./client";
-
+ 
 const MOCK_TOKEN = "mock_jwt_token";
-
-
+ 
+ 
 // POST /auth/register — сейчас отправляем ТОЛЬКО email и password.
 // Остальные поля профиля уходят отдельными запросами на шаге 2
 // (PATCH /users/me и PATCH /users/me/want-to-learn).
@@ -28,14 +29,14 @@ export const registerUser = async (
       },
     };
   }
-
+ 
   return request<TRegisterResponse>("/auth/register", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
 };
-
+ 
 // POST /auth/login
 export const loginUser = async (
   data: TLoginUserData,
@@ -53,7 +54,7 @@ export const loginUser = async (
       user,
     };
   }
-
+ 
   const resp = await request<TLoginUserResponse>("/auth/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -61,7 +62,7 @@ export const loginUser = async (
   });
   return resp;
 };
-
+ 
 // POST /auth/check-user
 export const checkUser = async (data: TLoginUserData): Promise<void> => {
   const resp = await request<void>("/auth/check-user", {
@@ -72,19 +73,17 @@ export const checkUser = async (data: TLoginUserData): Promise<void> => {
   return resp;
 };
 
+ 
+// GET /auth/profile
 // GET /users/me
-export const getProfile = async (): Promise<IUserProfile> => {
+export const getProfile = async (): Promise<IRealUserMeResponse> => {
   if (USE_MOCKS) {
     const response = await fetch("/users.json").then((res) => res.json());
     return response.data[0]; // в моках возвращаем первого юзера
   }
-
-  const response = await request<IUserProfile>("/users/me", {
-    method: "GET",
-  });
-  return response;
+  return request<IRealUserMeResponse>("/users/me");
 };
-
+ 
 // PATCH /auth/password
 export const changePassword = async (
   newPassword: string,
@@ -92,7 +91,7 @@ export const changePassword = async (
   if (USE_MOCKS) {
     return { newPassword };
   }
-
+ 
   const resp = await api.patch<{ newPassword: string }>(
     "/auth/password",
     { newPassword: newPassword },
@@ -102,6 +101,13 @@ export const changePassword = async (
       },
     },
   );
-
+ 
   return resp;
+};
+
+// POST /auth/logout — стирает httpOnly-куку на стороне бэкенда.
+// Локально (JS) куку стереть невозможно и не нужно пытаться.
+export const logoutUser = async (): Promise<void> => {
+  if (USE_MOCKS) return;
+  await request<void>("/auth/logout", { method: "POST" });
 };

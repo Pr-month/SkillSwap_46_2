@@ -4,19 +4,14 @@ import {
   checkUser,
   getProfile,
   loginUser,
+  logoutUser,
   registerUser,
 } from "../../api/authApi.ts";
-import { updateUser } from "../../api/userApi.ts";
-import { tokenService } from "../../utils/tokenService.ts";
-import type {
-  TLoginUserData,
-  TUpdateUserData,
-} from "../../utils/types.ts";
-import type { AuthState } from "./types.ts";
+import type { TLoginUserData, TUpdateUserData } from "../../utils/types.ts";
 import { updateMyProfile, updateWantToLearn } from "../../api/userApi.ts";
 import type { IUpdateProfileData } from "../../utils/types.ts";
-
-
+ 
+ 
 export const fetchRegister = createAsyncThunk(
   "auth/register",
   async (data: TLoginUserData, { rejectWithValue }) => {
@@ -27,7 +22,7 @@ export const fetchRegister = createAsyncThunk(
     }
   },
 );
-
+ 
 export const fetchLogin = createAsyncThunk(
   "auth/login",
   async (data: TLoginUserData, { rejectWithValue }) => {
@@ -38,7 +33,7 @@ export const fetchLogin = createAsyncThunk(
     }
   },
 );
-
+ 
 export const fetchCheckUser = createAsyncThunk(
   "auth/check-user",
   async (data: TLoginUserData, { rejectWithValue }) => {
@@ -49,7 +44,7 @@ export const fetchCheckUser = createAsyncThunk(
     }
   },
 );
-
+ 
 export const fetchProfile = createAsyncThunk(
   "auth/profile",
   async (_, { rejectWithValue }) => {
@@ -60,26 +55,21 @@ export const fetchProfile = createAsyncThunk(
     }
   },
 );
-
+ 
 export const fetchUpdateCurrentUser = createAsyncThunk(
   "auth/updateCurrentUser",
-  async (payload: Partial<TUpdateUserData>, { getState, rejectWithValue }) => {
-    const state = getState() as { auth: AuthState };
-    const { currentUser } = state.auth;
-    const token = tokenService.get();
-
-    if (!currentUser?.id || !token) {
-      return rejectWithValue("Не найден id пользователя или токен");
-    }
-
+  async (payload: Partial<TUpdateUserData>, { rejectWithValue }) => {
     try {
-      return await updateUser(currentUser.id, payload, token);
+      // Раньше здесь шёл PATCH /users/${id} с ручным Authorization-заголовком
+      // (старая Bearer-модель). updateMyProfile бьёт в правильный /users/me
+      // и полагается на httpOnly-куку, как и остальной фронтенд.
+      return await updateMyProfile(payload as IUpdateProfileData);
     } catch (err) {
       return rejectWithValue(err);
     }
   },
 );
-
+ 
 /** ОБНОВЛЕНИЕ ПАРОЛЯ ПОЛЬЗОВАТЕЛЯ */
 export const updatePassword = createAsyncThunk(
   "auth/update-password",
@@ -92,8 +82,8 @@ export const updatePassword = createAsyncThunk(
     }
   },
 );
-
-
+ 
+ 
 export const fetchUpdateMyProfile = createAsyncThunk(
   "auth/updateMyProfile",
   async (payload: IUpdateProfileData, { rejectWithValue }) => {
@@ -104,12 +94,23 @@ export const fetchUpdateMyProfile = createAsyncThunk(
     }
   },
 );
-
+ 
 export const fetchUpdateWantToLearn = createAsyncThunk(
   "auth/updateWantToLearn",
   async (categoryIds: string[], { rejectWithValue }) => {
     try {
       return await updateWantToLearn(categoryIds);
+    } catch (err) {
+      return rejectWithValue(err);
+    }
+  },
+);
+
+export const fetchLogout = createAsyncThunk(
+  "auth/logout",
+  async (_, { rejectWithValue }) => {
+    try {
+      await logoutUser();
     } catch (err) {
       return rejectWithValue(err);
     }

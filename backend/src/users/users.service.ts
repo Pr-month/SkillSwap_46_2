@@ -22,7 +22,7 @@ export class UsersService {
     private readonly cityRepository: Repository<City>,
     @InjectRepository(Category)
     private readonly categoryRepository: Repository<Category>,
-  ) {}
+  ) { }
 
   async findAll(dto: FindUsersDto) {
     const { page, limit } = dto;
@@ -87,10 +87,6 @@ export class UsersService {
     return { message: 'Пароль успешно изменён' };
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
-  }
-
   async update(id: string, dto: UpdateUserDto): Promise<User> {
     const user = await this.userRepository.findOne({
       where: { id },
@@ -123,14 +119,14 @@ export class UsersService {
     return user;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
-  }
-
   async findById(id: string): Promise<User | null> {
     return this.userRepository.findOne({
       where: { id },
-      relations: { city: true },
+      relations: {
+        city: true,
+        wantToLearn: true,
+        favoriteSkills: true
+      },
     });
   }
 

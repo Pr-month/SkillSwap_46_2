@@ -7,6 +7,8 @@ import { AuthModule } from './auth/auth.module';
 import { appConfig } from './config/app.config';
 import { jwtConfig } from './config/jwt.config';
 import { dbConfig, TDbConfig, getEnvFilePath } from './config/db.config';
+import { mailConfig } from './config/mail.config';
+import { MailModule } from './mail/mail.module';
 import { UsersModule } from './users/users.module';
 import { SkillsModule } from './skills/skills.module';
 import { CategoriesModule } from './categories/categories.module';
@@ -20,7 +22,7 @@ import { APP_GUARD } from '@nestjs/core';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [appConfig, dbConfig, jwtConfig],
+      load: [appConfig, dbConfig, jwtConfig, mailConfig],
       envFilePath: getEnvFilePath(),
     }),
     TypeOrmModule.forRootAsync({
@@ -45,14 +47,15 @@ import { APP_GUARD } from '@nestjs/core';
     CitiesModule,
     NotificationsModule,
     RequestsModule,
+    MailModule,
   ],
   controllers: [AppController],
-  providers: [AppService,
-{
-  provide: APP_GUARD,
-  useClass: ThrottlerGuard
-}
-
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
   ],
 })
 export class AppModule {}

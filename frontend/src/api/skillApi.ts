@@ -137,3 +137,36 @@ export const modifySkill = (
     data: formatSkill(response.data),
   }));
 };
+
+import type { IPublicSkillsFeedResponse } from "../utils/types";
+
+/** API: ПУБЛИЧНАЯ ЛЕНТА НАВЫКОВ ДЛЯ ГЛАВНОЙ (навык + вложенный автор) */
+export const getSkillFeed = (params?: {
+  page?: number;
+  limit?: number;
+  search?: string;
+}): Promise<IPublicSkillsFeedResponse> => {
+  const query = new URLSearchParams();
+  if (params?.page) query.set("page", String(params.page));
+  if (params?.limit) query.set("limit", String(params.limit));
+  if (params?.search) query.set("search", params.search);
+  const qs = query.toString();
+
+  return request<IPublicSkillsFeedResponse>(`/skills${qs ? `?${qs}` : ""}`);
+};
+
+/** API: ДОБАВИТЬ НАВЫК В ИЗБРАННОЕ */
+export const addSkillToFavorites = (
+  skillId: TId,
+): Promise<{ message: string }> =>
+  request<{ message: string }>(`/skills/${skillId}/favorite`, {
+    method: "POST",
+  });
+
+/** API: УБРАТЬ НАВЫК ИЗ ИЗБРАННОГО */
+export const removeSkillFromFavorites = (
+  skillId: TId,
+): Promise<{ message: string }> =>
+  request<{ message: string }>(`/skills/${skillId}/favorite`, {
+    method: "DELETE",
+  });

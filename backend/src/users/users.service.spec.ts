@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { UsersService } from './users.service';
 import { User } from './entities/user.entity';
 import { City } from '../cities/entities/city.entity';
+import { Category } from '../categories/entities/category.entity';
 
 jest.mock('bcrypt');
 
@@ -26,6 +27,8 @@ describe('UsersService', () => {
 
   let cityRepository: jest.Mocked<Pick<Repository<City>, 'findOne'>>;
 
+  let categoryRepository: jest.Mocked<Pick<Repository<Category>, 'findBy'>>;
+
   const existingUser = {
     id: 'user-1',
     email: 'user@example.com',
@@ -46,9 +49,14 @@ describe('UsersService', () => {
       findOne: jest.fn(),
     };
 
+    categoryRepository = {
+      findBy: jest.fn(),
+    };
+
     service = new UsersService(
       userRepository as unknown as Repository<User>,
       cityRepository as unknown as Repository<City>,
+      categoryRepository as unknown as Repository<Category>,
     );
 
     bcryptCompare.mockReset();
@@ -70,15 +78,15 @@ describe('UsersService', () => {
       });
 
       expect(userRepository.findAndCount).toHaveBeenCalledWith({
-      select: {
-        id: true,
-        name: true,
-        about: true,
-        birthdate: true,
-        gender: true,
-        avatar: true,
-        role: true,
-      },
+        select: {
+          id: true,
+          name: true,
+          about: true,
+          birthdate: true,
+          gender: true,
+          avatar: true,
+          role: true,
+        },
         skip: 0,
         take: 20,
       });
@@ -95,15 +103,15 @@ describe('UsersService', () => {
       });
 
       expect(userRepository.findAndCount).toHaveBeenCalledWith({
-      select: {
-        id: true,
-        name: true,
-        about: true,
-        birthdate: true,
-        gender: true,
-        avatar: true,
-        role: true,
-      },
+        select: {
+          id: true,
+          name: true,
+          about: true,
+          birthdate: true,
+          gender: true,
+          avatar: true,
+          role: true,
+        },
 
         skip: 10,
         take: 10,
