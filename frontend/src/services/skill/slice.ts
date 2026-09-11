@@ -160,7 +160,7 @@ export const selectUserSkills = createSelector(
   [selectAllSkills, (_, userId: TId | undefined) => userId],
   (skills, userId) => {
     if (!skills || !userId) return null;
-    return skills.filter((skill) => skill.userId === userId);
+    return skills.filter((skill) => String(skill.user?.id ?? "") === String(userId));
   },
 );
 

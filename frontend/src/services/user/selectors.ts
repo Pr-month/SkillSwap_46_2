@@ -69,7 +69,10 @@ export const selectNewestUsers = createSelector(selectUsers, (users) => {
     now.getDate(),
   );
 
-  return users.filter((user) => new Date(user.createdAt) >= oneMonthAgo);
+  return users.filter((user) => {
+    if (!user.createdAt) return false;
+    return new Date(user.createdAt) >= oneMonthAgo;
+  });
 });
 
 export const selectRecommendedUsers = createSelector(
@@ -134,16 +137,18 @@ const createFilteredUsersSelector = (
           ? excludeFn(searchableSkills, searchQuery)
           : []; // Работа функции для исключения дублей карточек с искомым словом и в имени и в описании скилла
 
-      return users.filter(
-        (user) =>
+      return users.filter((user) => {
+        const hasValidSkill = !user.userSkill || matchingIds.includes(user.userSkill);
+        const isExcluded = user.userSkill ? excludeIds.includes(user.userSkill) : false;
+
+        return (
           matchesGender(user, gender) &&
           matchesCity(user, cities) &&
           matchesSkill(user, subCategoryIds, skillOption, skills) &&
-          (matchingIds === null ||
-            !user.userSkill ||
-            matchingIds.includes(user.userSkill)) &&
-          !excludeIds.includes(user.userSkill),
-      );
+          (matchingIds === null || hasValidSkill) &&
+          !isExcluded
+        );
+      });
     },
   );
 

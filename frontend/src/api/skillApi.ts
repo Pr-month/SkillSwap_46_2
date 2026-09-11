@@ -15,18 +15,19 @@ interface ApiResponse<T> {
   data: T;
 }
 
-const formatSkill = (skill: ISkillBackend): ISkill => ({
-  id: skill.id,
+const formatSkill = (skill: Partial<ISkillBackend> | null | undefined): ISkill => ({
+  id: skill?.id ?? "",
 
-  title: skill.title,
-  description: skill.description,
-  images: skill.images,
+  title: skill?.title ?? "",
+  description: skill?.description ?? "",
+  images: Array.isArray(skill?.images) ? skill.images : [],
 
-  userId: skill.user.id ?? "",
-  skillSubcategory: skill.category.id ?? "",
+  user: skill?.user ?? undefined,
+  category: skill?.category ?? undefined,
+  skillSubcategory: skill?.category?.id ?? "",
 
-  createdAt: skill.createdAt,
-  updatedAt: skill.createdAt, // TODO: заменить на skill.updatedAt после обновления API
+  createdAt: skill?.createdAt ?? new Date().toISOString(),
+  updatedAt: skill?.createdAt ?? new Date().toISOString(),
 });
 
 //! ЗАПРПОСЫ БЕЗ АВТОРИЗАЦИИ
@@ -74,7 +75,9 @@ export const addSkill = (skill: TSkillData): Promise<TSkillResponse> => {
       data: {
         ...skill,
         id: Date.now().toString(),
-        userId: "mock-user-id",
+        user: {
+          id: "mock-user-id",
+        },
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       },

@@ -80,7 +80,8 @@ export interface ISkill {
   description: string;
   skillSubcategory: TId;
   images: string[];
-  userId: TId;
+  user?: Partial<IUserProfileOnBackend>;
+  category?: Partial<ISkillsCategory>;
   createdAt: string; // дата создания навыка
   updatedAt: string; // дата обновления навыка
 }
@@ -90,7 +91,7 @@ export interface ISkillBackend {
   title: string;
   description: string;
   images: string[];
-  user: IUserProfile;
+  user: Partial<IUserProfileOnBackend>;
   category: ISkillsCategory;
   createdAt: string;
 }
@@ -156,12 +157,12 @@ export type TSkillsResponse = TServerResponse<{
 /** ДАННЫЕ ДЛЯ ЗАПРОСА ДОБАВЛЕНИЯ НАВЫКА */
 export type TSkillData = Omit<
   ISkill,
-  "id" | "userId" | "updatedAt" | "createdAt"
+  "id" | "updatedAt" | "createdAt"
 >;
 
 /** ДАННЫЕ ДЛЯ ЗАПРОСА МОДИФИКАЦИИ НАВЫКА */
 export type TModifySkillData = Partial<
-  Omit<ISkill, "id" | "userId" | "updatedAt" | "createdAt">
+  Omit<ISkill, "id" | "updatedAt" | "createdAt">
 > & { id: TId };
 
 /** ДАННЫЕ ЗАПРОСА НА ОБМЕН НАВЫКАМИ */

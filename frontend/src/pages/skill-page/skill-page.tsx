@@ -14,8 +14,7 @@ import {
   selectSelectedUser,
   selectSimilarUsers,
 } from "../../services/user/selectors";
-import { fetchUserById, fetchUsers } from "../../services/user/actions";
-import { fetchSkills } from "../../services/skill/actions";
+import { fetchSkillById, fetchSkills } from "../../services/skill/actions";
 import {
   fetchCategories,
   fetchSubCategories,
@@ -23,7 +22,7 @@ import {
 import { getSkillTitle } from "../../shared/lib/getSkillTitle";
 import { getSubcategoryNames } from "../../shared/lib/getSubcategoryNames";
 import { getLearnColors, getTeachColor } from "../../shared/lib/skillColors";
-import { getAgeFromBirthDate } from "../../utils/age";
+import { formatAgeValue } from "../../utils/age";
 import clsx from "clsx";
 import {
   createRequestAction,
@@ -59,12 +58,36 @@ export function SkillPage() {
   const selectedSkill =
     skills.find((skill) => String(skill.id) === String(id)) ?? null;
   const rawSkillUser = (selectedSkill as any)?.user ?? null;
+  const selectedUserFromSkill = rawSkillUser
+    ? {
+        id: rawSkillUser.id ?? selectedSkill?.user?.id ?? "",
+        email: rawSkillUser.email ?? "",
+        name: rawSkillUser.name ?? "",
+        birthDate: rawSkillUser.birthdate ?? rawSkillUser.birthDate ?? "",
+        age: typeof rawSkillUser.age === "number" ? rawSkillUser.age : null,
+        gender: rawSkillUser.gender ?? "UNSPECIFIED",
+        city: rawSkillUser.city?.name ?? "",
+        avatar: rawSkillUser.avatar ?? "",
+        aboutMe: rawSkillUser.about ?? "",
+        likesSkillsIds: Array.isArray(rawSkillUser.favoriteSkills)
+          ? rawSkillUser.favoriteSkills.map((skill: any) => skill.id)
+          : [],
+        userSkill: selectedSkill?.id ?? "",
+        interestedSkillsSubcategoriesIds: Array.isArray(rawSkillUser.wantToLearn)
+          ? rawSkillUser.wantToLearn.map((category: any) => category.id)
+          : [],
+        createdAt: selectedSkill?.createdAt ?? "",
+        updatedAt: selectedSkill?.createdAt ?? "",
+      }
+    : null;
+
   const selectedUser =
     selectedUserFromStore ??
+    selectedUserFromSkill ??
     users.find((user) => String(user.userSkill) === String(id)) ??
     users.find(
       (user) =>
-        String(user.id) === String((selectedSkill as any)?.userId ?? rawSkillUser?.id),
+        String(user.id) === String(selectedSkill?.user?.id ?? rawSkillUser?.id),
     ) ??
     null;
 
@@ -79,12 +102,16 @@ export function SkillPage() {
   const [isTogglingFavorite, setIsTogglingFavorite] = useState(false);
 
   useEffect(() => {
-    if (users.length === 0) {
-      dispatch(fetchUsers());
+    if (!id) {
+      return;
     }
 
     if (skills.length === 0) {
       dispatch(fetchSkills());
+    }
+
+    if (!selectedSkill) {
+      dispatch(fetchSkillById(id));
     }
 
     if (categories.length === 0) {
@@ -95,30 +122,17 @@ export function SkillPage() {
       dispatch(fetchSubCategories());
     }
 
-    const authorUserId = (selectedSkill as any)?.user?.id ?? selectedSkill?.userId;
-
-    if (authorUserId) {
-      const matchedUser =
-        users.find((user) => String(user.id) === String(authorUserId)) ??
-        users.find((user) => String(user.userSkill) === String(selectedSkill?.id));
-
-      if (!matchedUser) {
-        dispatch(fetchUserById(authorUserId));
-      }
-    }
-
     if (currentUser) {
       dispatch(fetchMyRequests());
     }
   }, [
     dispatch,
     id,
-    users,
-    skills,
+    selectedSkill,
+    skills.length,
     categories.length,
     subCategories.length,
     currentUser,
-    selectedSkill,
   ]);
 
   if (!id) {
@@ -174,8 +188,14 @@ export function SkillPage() {
     categories,
   );
 
-  const isFavorite =
-    (currentUser?.likesSkillsIds ?? []).includes(selectedUser.userSkill) ?? false;
+  const authorAgeLabel = formatAgeValue(
+    selectedUser.birthDate || (rawSkillUser?.age ?? null),
+  );
+
+  const isFavorite = Boolean(
+    selectedUser.userSkill &&
+      (currentUser?.likesSkillsIds ?? []).includes(selectedUser.userSkill),
+  );
 
   const isOwnProfile = currentUser?.id === selectedUser?.id;
 
@@ -205,7 +225,7 @@ export function SkillPage() {
   const preparedSimilarUsers = similarUsers
     .map((user) => {
       const age = getAgeNumber(user.birthDate);
-      const canTeach = getSkillTitle(user.userSkill, skills);
+      const canTeach = user.userSkill ? getSkillTitle(user.userSkill, skills) : "";
       const wantsToLearn = getSubcategoryNames(
         user.interestedSkillsSubcategoriesIds,
         subCategories,
@@ -247,7 +267,6 @@ export function SkillPage() {
       await dispatch(
         fetchUpdateCurrentUser({ likesSkillsIds: nextLikesSkillsIds }),
       ).unwrap();
-      dispatch(fetchUsers());
       showToast(
         isLiked ? "Удалено из избранного" : "Добавлено в избранное",
         "success",
@@ -327,7 +346,7 @@ export function SkillPage() {
               <h2 className={styles.authorName}>{selectedUser.name}</h2>
               <p className={styles.authorMeta}>
                 {selectedUser.city},{" "}
-                {getAgeFromBirthDate(selectedUser.birthDate)}
+                {authorAgeLabel}
               </p>
             </div>
           </div>
@@ -375,7 +394,7 @@ export function SkillPage() {
               type="button"
               className={styles.actionButton}
               aria-label="Добавить в избранное"
-              onClick={() => handleFavoriteClick(selectedUser.userSkill)}
+              onClick={() => handleFavoriteClick(selectedUser.userSkill ?? undefined)}
               disabled={isTogglingFavorite}
             >
               <Icon
@@ -526,9 +545,11 @@ export function SkillPage() {
               age: user.age,
               canTeach: user.canTeach,
               wantsToLearn: user.wantsToLearn,
-              isFavorite:
-                currentUser?.likesSkillsIds.includes(user.userSkill) ?? false,
-              onFavoriteClick: () => handleFavoriteClick(user.userSkill),
+              isFavorite: Boolean(
+                user.userSkill &&
+                  (currentUser?.likesSkillsIds ?? []).includes(user.userSkill),
+              ),
+              onFavoriteClick: () => handleFavoriteClick(user.userSkill ?? undefined),
               teachColor: getTeachColor(
                 user.userSkill,
                 skills,
