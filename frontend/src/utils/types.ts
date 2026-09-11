@@ -217,7 +217,6 @@ export interface IWantToLearnCategory {
   name: string;
 }
 
-
 /** ЭЛЕМЕНТ ПУБЛИЧНОЙ ЛЕНТЫ НАВЫКОВ (GET /skills) — навык со вложенным автором.
  *  Отдельный тип от ISkill: та форма — для создания/редактирования своего
  *  навыка, эта — специально под витрину карточек на главной. */
@@ -234,7 +233,7 @@ export interface IPublicSkillCard {
     wantToLearn: { id: TId; name: string }[] | null;
   };
 }
- 
+
 export interface IPublicSkillsFeedResponse {
   data: IPublicSkillCard[];
   page: number;
