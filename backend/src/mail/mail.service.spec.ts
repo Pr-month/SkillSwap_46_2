@@ -175,6 +175,7 @@ describe('MailService', () => {
       to: 'user@mail.com',
       subject: 'Hello',
       text: 'Message',
+      html: undefined,
     });
   });
 });
