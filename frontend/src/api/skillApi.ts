@@ -5,6 +5,8 @@ import type {
   TSkillData,
   TSkillResponse,
   TSkillsResponse,
+  ISkillBackend,
+  ISkill
 } from "../utils/types";
 import { request } from "./client";
 
@@ -12,6 +14,21 @@ interface ApiResponse<T> {
   status: boolean;
   data: T;
 }
+
+const formatSkill = (skill: Partial<ISkillBackend> | null | undefined): ISkill => ({
+  id: skill?.id ?? "",
+
+  title: skill?.title ?? "",
+  description: skill?.description ?? "",
+  images: Array.isArray(skill?.images) ? skill.images : [],
+
+  user: skill?.user ?? undefined,
+  category: skill?.category ?? undefined,
+  skillSubcategory: skill?.category?.id ?? "",
+
+  createdAt: skill?.createdAt ?? new Date().toISOString(),
+  updatedAt: skill?.createdAt ?? new Date().toISOString(),
+});
 
 //! ЗАПРПОСЫ БЕЗ АВТОРИЗАЦИИ
 
@@ -23,9 +40,10 @@ export const getSkills = (): Promise<TSkillsResponse> => {
       .then((response) => response);
   }
 
-  return request<TSkillsResponse>("/skills").then(
-    (response: TSkillsResponse) => response,
-  );
+  return request<ApiResponse<ISkillBackend[]>>("/skills").then((response) => ({
+    status: response.status,
+    data: response.data.map(formatSkill),
+  }));
 };
 
 /** API: ПОЛУЧЕНИЕ НАВЫКА ПО ЕГО ID */
@@ -33,11 +51,17 @@ export const getSkillById = (skillId: TId): Promise<TSkillResponse> => {
   if (USE_MOCKS) {
     return fetch("/skills.json")
       .then((res) => res.json())
-      .then((response) => response.data[0]);
+      .then((response) => ({
+        status: true,
+        data: response.data[0],
+      }));
   }
 
-  return request<TSkillResponse>(`/skills/${skillId}`).then(
-    (response: TSkillResponse) => response,
+  return request<ApiResponse<ISkillBackend>>(`/skills/${skillId}`).then(
+    (response) => ({
+      status: response.status,
+      data: formatSkill(response.data),
+    }),
   );
 };
 
@@ -51,20 +75,24 @@ export const addSkill = (skill: TSkillData): Promise<TSkillResponse> => {
       data: {
         ...skill,
         id: Date.now().toString(),
-        userId: "mock-user-id",
+        user: {
+          id: "mock-user-id",
+        },
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       },
     });
   }
-
-  return request<ApiResponse<TSkillResponse["data"]>>("/skills", {
+  return request<ApiResponse<ISkillBackend>>("/skills", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify(skill),
-  }).then((response: TSkillResponse) => response);
+  }).then((response) => ({
+    status: response.status,
+    data: formatSkill(response.data),
+  }));
 };
 
 /** API: УДАЛЕНИЕ НАВЫКА ПО ЕГО ID */
@@ -87,7 +115,10 @@ export const modifySkill = (
   if (USE_MOCKS) {
     return fetch("/skills.json")
       .then((res) => res.json())
-      .then((response) => response.data[0]);
+      .then((response) => ({
+        status: true,
+        data: response.data[0],
+      }));
   }
 
   const { id, ...skillData } = skill;
@@ -98,13 +129,16 @@ export const modifySkill = (
     return Promise.reject();
   }
 
-  return request<ApiResponse<TSkillResponse["data"]>>(`/skills/${skill.id}`, {
+  return request<ApiResponse<ISkillBackend>>(`/skills/${id}`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify(skillData),
-  }).then((response: TSkillResponse) => response);
+  }).then((response) => ({
+    status: response.status,
+    data: formatSkill(response.data),
+  }));
 };
 
 import type { IPublicSkillsFeedResponse } from "../utils/types";

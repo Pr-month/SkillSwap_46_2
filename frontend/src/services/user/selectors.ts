@@ -13,7 +13,20 @@ import {
 import type { ISkill, TId } from "../../utils/types.ts";
 
 export const selectUsers = (state: RootState) => state.user.list;
-export const selectSelectedUser = (state: RootState) => state.user.selectedUser;
+export const selectSelectedUser = (
+  state: RootState,
+  skillId?: string | null,
+) => {
+  if (!skillId) {
+    return state.user.selectedUser;
+  }
+
+  const userBySkill = state.user.list.find(
+    (user) => String(user.userSkill) === String(skillId),
+  );
+
+  return userBySkill ?? state.user.selectedUser;
+};
 export const selectUserLoading = (state: RootState) => state.user.loading;
 export const selectUserError = (state: RootState) => state.user.error;
 

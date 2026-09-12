@@ -32,7 +32,27 @@ const formatAgeWithDeclension = (age: number): string => {
   return `${age} лет`;
 };
 
-export const getAgeFromBirthDate = (birthDate: string): string => {
+export const getAgeFromBirthDate = (birthDate?: string | null): string => {
+  if (!birthDate || Number.isNaN(new Date(birthDate).getTime())) {
+    return "Возраст не указан";
+  }
+
   const age = getNumberAgeFromBirthDate(birthDate);
-  return formatAgeWithDeclension(age);
+  return Number.isFinite(age) && age >= 0
+    ? formatAgeWithDeclension(age)
+    : "Возраст не указан";
+};
+
+export const formatAgeValue = (
+  value: number | string | null | undefined,
+): string => {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return formatAgeWithDeclension(value);
+  }
+
+  if (typeof value === "string" && value.trim()) {
+    return getAgeFromBirthDate(value);
+  }
+
+  return "Возраст не указан";
 };

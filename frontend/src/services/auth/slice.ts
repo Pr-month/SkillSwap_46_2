@@ -12,7 +12,25 @@ import {
 } from "./actions.ts";
 import type { AuthState } from "./types.ts";
 import type { IRealUserMeResponse, IUserProfile } from "../../utils/types.ts";
- 
+const normalizeCurrentUser = (user: any) => {
+  if (!user) return null;
+
+  return {
+    ...user,
+    likesSkillsIds: Array.isArray(user.likesSkillsIds) ? user.likesSkillsIds : [],
+    interestedSkillsSubcategoriesIds: Array.isArray(
+      user.interestedSkillsSubcategoriesIds,
+    )
+      ? user.interestedSkillsSubcategoriesIds
+      : [],
+    userSkill: user.userSkill ?? "",
+    city: user.city ?? "",
+    avatar: user.avatar ?? "",
+    birthDate: user.birthDate ?? user.birthdate ?? "",
+  };
+};
+
+
 // Реальный GET /users/me отдаёт другую форму, чем IUserProfile (city — объект,
 // нет likesSkillsIds/userSkill/interestedSkillsSubcategoriesIds — эти relations
 // пока не подгружаются этим эндпоинтом, см. чат с бэком). Приводим к тому,
@@ -36,7 +54,7 @@ const mapRealUserToProfile = (
   createdAt: previous?.createdAt ?? "",
   updatedAt: previous?.updatedAt ?? "",
 });
- 
+
 const initialState: AuthState = {
   currentUser: null,
   loading: false,
@@ -66,23 +84,20 @@ export const authSlice = createSlice({
       .addCase(fetchRegister.pending, handlePending)
       .addCase(fetchRegister.fulfilled, (state, action) => {
         state.loading = false;
-        const { id, email, name } = action.payload.user;
-        // Ответ на регистрацию сейчас скудный (id/email/role/name) —
-        // достраиваем до полного IUserProfile дефолтами; реальные данные
-        // допишутся на шаге 2 (PATCH /users/me и .../want-to-learn).
-        state.currentUser = {
-          id,
-          email,
-          name: name ?? "",
-          birthDate: "",
-          city: "",
-          avatar: "",
-          likesSkillsIds: [],
-          userSkill: "",
-          interestedSkillsSubcategoriesIds: [],
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
+        const userPayload = action.payload.user as any;
+
+        state.currentUser = normalizeCurrentUser({
+          ...userPayload,
+          birthDate: userPayload?.birthDate ?? "",
+          city: userPayload?.city ?? "",
+          avatar: userPayload?.avatar ?? "",
+          likesSkillsIds: userPayload?.likesSkillsIds ?? [],
+          userSkill: userPayload?.userSkill ?? "",
+          interestedSkillsSubcategoriesIds:
+            userPayload?.interestedSkillsSubcategoriesIds ?? [],
+          createdAt: userPayload?.createdAt ?? new Date().toISOString(),
+          updatedAt: userPayload?.updatedAt ?? new Date().toISOString(),
+        });
       })
       .addCase(fetchRegister.rejected, handleRejected)
  
@@ -90,7 +105,7 @@ export const authSlice = createSlice({
       .addCase(fetchLogin.pending, handlePending)
       .addCase(fetchLogin.fulfilled, (state, action) => {
         state.loading = false;
-        state.currentUser = action.payload.user;
+        state.currentUser = normalizeCurrentUser(action.payload.user);
       })
       .addCase(fetchLogin.rejected, handleRejected)
  
@@ -116,13 +131,10 @@ export const authSlice = createSlice({
       .addCase(fetchUpdateCurrentUser.pending, handlePending)
       .addCase(fetchUpdateCurrentUser.fulfilled, (state, action) => {
         state.loading = false;
+        state.currentUser = normalizeCurrentUser(action.payload);
         // action.payload — реальная форма User с бэкенда (через
         // updateMyProfile), не IUserProfile напрямую — та же причина,
         // что и у fetchProfile.
-        state.currentUser = mapRealUserToProfile(
-          action.payload as unknown as IRealUserMeResponse,
-          state.currentUser,
-        );
       })
       .addCase(fetchUpdateCurrentUser.rejected, handleRejected)
  

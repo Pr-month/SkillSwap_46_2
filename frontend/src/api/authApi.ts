@@ -72,6 +72,7 @@ export const checkUser = async (data: TLoginUserData): Promise<void> => {
   });
   return resp;
 };
+
  
 // GET /auth/profile
 // GET /users/me
@@ -80,7 +81,6 @@ export const getProfile = async (): Promise<IRealUserMeResponse> => {
     const response = await fetch("/users.json").then((res) => res.json());
     return response.data[0]; // в моках возвращаем первого юзера
   }
- 
   return request<IRealUserMeResponse>("/users/me");
 };
  

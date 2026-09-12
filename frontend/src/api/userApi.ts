@@ -8,7 +8,7 @@ interface ApiResponse<T> {
   data: T;
 }
 
-const formatUser = (user: IUserProfileOnBackend): IUserProfile => ({
+export const formatUser = (user: IUserProfileOnBackend): IUserProfile => ({
   id: user.id,
   email: user.email,
   name: user.name ?? "",
@@ -26,18 +26,18 @@ const formatUser = (user: IUserProfileOnBackend): IUserProfile => ({
 // GET /users
 export const getUsers = (): Promise<IUserProfile[]> => {
   if (USE_MOCKS) {
-    return fetch("/users.json")
+    return fetch("/skills.json")
       .then((res) => res.json())
-      .then((response) => response.data);
+      .then((response) => (response.data ?? []));
   }
+
   return request<ApiResponse<IUserProfileOnBackend[]>>("/users").then(
     (response) => response.data.map(formatUser),
   );
 };
 
 // GET /users/:id
-export const getUserById = (id: TId): Promise<IUserProfile> => {
-
+export const getUserById = async (id: TId): Promise<IUserProfile> => {
   if (USE_MOCKS) {
     return fetch("/users.json")
       .then((res) => res.json())

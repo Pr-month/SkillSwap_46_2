@@ -69,3 +69,15 @@ export function ApiAuthRegister() {
     }),
   );
 }
+
+export function ApiAuthCheckUser() {
+  return applyDecorators(
+    ApiOperation({ summary: 'Проверка существования пользователя' }),
+    ApiBody({ type: LoginDto }),
+    ApiResponse({
+      status: 200,
+      description: 'Пользователь найден и пароль корректен',
+    }),
+    ApiResponse({ status: 401, description: 'Неверный email или пароль' }),
+  );
+}

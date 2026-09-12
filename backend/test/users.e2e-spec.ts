@@ -46,9 +46,10 @@ describe('UsersController (e2e)', () => {
     return accessCookie ? accessCookie.slice('accessToken='.length) : null;
   };
 
-  const authTokenOf = async (
-    user: { email: string; password: string },
-  ): Promise<string> => {
+  const authTokenOf = async (user: {
+    email: string;
+    password: string;
+  }): Promise<string> => {
     const res = await request(server)
       .post('/auth/register')
       .send(user)
@@ -60,9 +61,10 @@ describe('UsersController (e2e)', () => {
     return token;
   };
 
-  const loginTokenOf = async (
-    user: { email: string; password: string },
-  ): Promise<string> => {
+  const loginTokenOf = async (user: {
+    email: string;
+    password: string;
+  }): Promise<string> => {
     const res = await request(server)
       .post('/auth/login')
       .send(user)

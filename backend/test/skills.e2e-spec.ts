@@ -45,9 +45,10 @@ describe('SkillsController (e2e)', () => {
     return accessCookie ? accessCookie.slice('accessToken='.length) : null;
   };
 
-  const register = async (
-    user: { email: string; password: string },
-  ): Promise<string> => {
+  const register = async (user: {
+    email: string;
+    password: string;
+  }): Promise<string> => {
     const res = await request(server)
       .post('/auth/register')
       .send(user)

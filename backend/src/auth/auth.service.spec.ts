@@ -374,6 +374,47 @@ describe('AuthService', () => {
     });
   });
 
+  describe('checkUser', () => {
+    it('возвращает exists=true, если пользователь найден и пароль верный', async () => {
+      mockedUserRepo.findOne.mockResolvedValue(existingUser);
+      bcryptCompare.mockResolvedValue(true);
+
+      const result = await service.checkUser({
+        email: existingUser.email,
+        password: 'plain-password',
+      });
+
+      expect(result).toEqual({ exists: true });
+      expect(bcryptCompare).toHaveBeenCalledWith(
+        'plain-password',
+        existingUser.password,
+      );
+    });
+
+    it('бросает UnauthorizedException, если пользователь не найден', async () => {
+      mockedUserRepo.findOne.mockResolvedValue(null);
+
+      await expect(
+        service.checkUser({
+          email: 'no@example.com',
+          password: 'plain-password',
+        }),
+      ).rejects.toThrow(UnauthorizedException);
+    });
+
+    it('бросает UnauthorizedException при неверном пароле', async () => {
+      mockedUserRepo.findOne.mockResolvedValue(existingUser);
+      bcryptCompare.mockResolvedValue(false);
+
+      await expect(
+        service.checkUser({
+          email: existingUser.email,
+          password: 'wrong-password',
+        }),
+      ).rejects.toThrow(UnauthorizedException);
+    });
+  });
+
   describe('deleteRefreshToken', () => {
     it('устанавливает refreshToken=null у найденного пользователя', async () => {
       mockedUserRepo.findOne.mockResolvedValue({

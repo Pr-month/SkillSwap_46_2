@@ -22,7 +22,7 @@ export class UsersService {
     private readonly cityRepository: Repository<City>,
     @InjectRepository(Category)
     private readonly categoryRepository: Repository<Category>,
-  ) { }
+  ) {}
 
   async findAll(dto: FindUsersDto) {
     const { page = 1, limit = 20 } = dto;
@@ -125,7 +125,7 @@ export class UsersService {
       relations: {
         city: true,
         wantToLearn: true,
-        favoriteSkills: true
+        favoriteSkills: true,
       },
     });
   }

@@ -11,7 +11,7 @@ export type SkillCardProps = {
   avatar: string;
   name: string;
   city: string;
-  age: number;
+  age: number | null;
   canTeach: string;
   wantsToLearn: string[];
   isFavorite?: boolean;
@@ -56,7 +56,10 @@ export const SkillCard = memo(function SkillCard({
   disableDetails = false,
   exchangeProposed = false,
 }: SkillCardProps) {
-  const ageLabel = getAgeLabel(age);
+  const ageLabel =
+    typeof age === "number" && Number.isFinite(age)
+      ? getAgeLabel(age)
+      : "Возраст не указан";
 
   const handleFavoriteChange = (): void => {
     if (id === undefined) {
