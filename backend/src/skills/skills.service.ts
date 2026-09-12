@@ -47,7 +47,7 @@ export class SkillsService {
   }
 
   async findAll(dto: FindSkillsDto) {
-    const { page, limit, search } = dto;
+    const { page = 1, limit = 20, search = '' } = dto;
 
     const query = this.skillsRepository
       .createQueryBuilder('skill')

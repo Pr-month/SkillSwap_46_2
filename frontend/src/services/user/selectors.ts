@@ -13,52 +13,24 @@ import {
 import type { ISkill, TId } from "../../utils/types.ts";
 
 export const selectUsers = (state: RootState) => state.user.list;
-export const selectSelectedUser = (
-  state: RootState,
-  skillId?: string | null,
-) => {
-  if (!skillId) {
-    return state.user.selectedUser;
-  }
-
-  const userBySkill = state.user.list.find(
-    (user) => String(user.userSkill) === String(skillId),
-  );
-
-  return userBySkill ?? state.user.selectedUser;
-};
+export const selectSelectedUser = (state: RootState) => state.user.selectedUser;
 export const selectUserLoading = (state: RootState) => state.user.loading;
 export const selectUserError = (state: RootState) => state.user.error;
 
 export const selectPopularUsers = createSelector(selectUsers, (users) => {
-  const skillLikeCounts = new Map<string, number>();
-
-  users.forEach((user) => {
-    if (!user.userSkill) return;
-    skillLikeCounts.set(user.userSkill, 0);
-  });
-
-  users.forEach((user) => {
-    if (!user.userSkill) return;
-    user.likesSkillsIds.forEach((likedSkillId) => {
-      if (!skillLikeCounts.has(likedSkillId)) {
-        skillLikeCounts.set(likedSkillId, 0);
-      }
-      skillLikeCounts.set(
-        likedSkillId,
-        (skillLikeCounts.get(likedSkillId) ?? 0) + 1,
-      );
-    });
-  });
-
+  const likesCount = users
+    .flatMap((u) => u.likesSkillsIds)
+    .reduce<Record<string, number>>((acc, skillId) => {
+      acc[skillId] = (acc[skillId] ?? 0) + 1;
+      return acc;
+    }, {});
   return [...users]
-    .map((user) => ({
-      ...user,
-      popularity: user.userSkill ? skillLikeCounts.get(user.userSkill) ?? 0 : 0,
-    }))
-    .sort((a, b) => b.popularity - a.popularity)
-    .slice(0, 9)
-    .map(({ popularity, ...user }) => user);
+    .sort(
+      (a, b) =>
+        (likesCount[b.userSkill ?? ""] ?? 0) -
+        (likesCount[a.userSkill ?? ""] ?? 0),
+    )
+    .slice(0, 9);
 });
 
 export const selectNewestUsers = createSelector(selectUsers, (users) => {
@@ -69,10 +41,10 @@ export const selectNewestUsers = createSelector(selectUsers, (users) => {
     now.getDate(),
   );
 
-  return users.filter((user) => {
-    if (!user.createdAt) return false;
-    return new Date(user.createdAt) >= oneMonthAgo;
-  });
+  return users.filter(
+    (user) =>
+      !!user.createdAt && new Date(user.createdAt).getTime() >= oneMonthAgo.getTime(),
+  ); // Только за последний месяц
 });
 
 export const selectRecommendedUsers = createSelector(
@@ -137,18 +109,16 @@ const createFilteredUsersSelector = (
           ? excludeFn(searchableSkills, searchQuery)
           : []; // Работа функции для исключения дублей карточек с искомым словом и в имени и в описании скилла
 
-      return users.filter((user) => {
-        const hasValidSkill = !user.userSkill || matchingIds.includes(user.userSkill);
-        const isExcluded = user.userSkill ? excludeIds.includes(user.userSkill) : false;
-
-        return (
+      return users.filter(
+        (user) =>
           matchesGender(user, gender) &&
           matchesCity(user, cities) &&
           matchesSkill(user, subCategoryIds, skillOption, skills) &&
-          (matchingIds === null || hasValidSkill) &&
-          !isExcluded
-        );
-      });
+          (matchingIds === null ||
+            !user.userSkill ||
+            matchingIds.includes(user.userSkill)) &&
+          !excludeIds.includes(user.userSkill ?? ""),
+      );
     },
   );
 

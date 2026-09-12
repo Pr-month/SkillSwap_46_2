@@ -13,7 +13,7 @@ const mockUser: IUserProfile = {
   email: "test@test.com",
   name: "Test User",
   birthDate: "2000-01-01",
-  gender: "male",
+  gender: "MALE",
   city: "Moscow",
   avatar: "avatar.png",
   likesSkillsIds: [],

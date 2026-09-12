@@ -9,14 +9,16 @@ async function seedUser() {
 
   const userRepo = AppDataSource.getRepository(User);
 
-  const userCount = await userRepo.count();
-
-  if (userCount > 0) {
-    console.log('Users already exists');
-    return;
-  }
-
   for (const userData of seedUserData) {
+    const existing = await userRepo.findOne({
+      where: { email: userData.email },
+    });
+
+    if (existing) {
+      console.log(`User "${userData.email}" already exists`);
+      continue;
+    }
+
     const hashedPassword = await bcrypt.hash(userData.password, 10);
     const user = userRepo.create({
       ...userData,

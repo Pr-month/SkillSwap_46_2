@@ -73,6 +73,7 @@ describe('SkillsService', () => {
     user: { id: ownerId } as User,
     category,
     createdAt: new Date('2026-08-22T00:00:00.000Z'),
+    favoritedByUsers: [],
   } as Skill;
 
   const skillWithUser = {
@@ -508,6 +509,7 @@ describe('SkillsService', () => {
         user: { id: ownerId } as User,
         category,
         createdAt: new Date('2026-08-22T00:00:00.000Z'),
+        favoritedByUsers: [],
       } as Skill;
 
       const user = {

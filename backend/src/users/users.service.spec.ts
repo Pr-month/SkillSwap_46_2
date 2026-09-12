@@ -216,7 +216,7 @@ describe('UsersService', () => {
 
       expect(userRepository.findOne).toHaveBeenCalledWith({
         where: { id: existingUser.id },
-        relations: { city: true },
+        relations: { city: true, favoriteSkills: true, wantToLearn: true },
       });
     });
 
