@@ -65,7 +65,7 @@ describe("ПРОВЕРКА РЕДЮСЕРА СЛАЙСА НАВЫКА [skillSlic
         title: "Игра на барабанах",
         description: "Играю на барабанах...",
         skillSubcategory: "sub-4-4",
-        userId: "user-1",
+        user: { id: "user-1" },
         createdAt: "2025-02-14T15:30:00Z",
         updatedAt: "2025-02-14T15:30:00Z",
         images: [
@@ -80,7 +80,7 @@ describe("ПРОВЕРКА РЕДЮСЕРА СЛАЙСА НАВЫКА [skillSlic
         title: "Портретная фотография",
         description: "Профессионально занимаюсь портретной съёмкой...",
         skillSubcategory: "sub-4-2",
-        userId: "user-2",
+        user: { id: "user-2" },
         createdAt: "2025-01-20T09:15:00Z",
         updatedAt: "2025-01-20T09:15:00Z",
         images: [
@@ -95,7 +95,7 @@ describe("ПРОВЕРКА РЕДЮСЕРА СЛАЙСА НАВЫКА [skillSlic
         title: "Запуск бизнеса с нуля",
         description: "Прошёл путь от идеи до работающего бизнеса...",
         skillSubcategory: "sub-1-8",
-        userId: "user-3",
+        user: { id: "user-3" },
         createdAt: "2025-03-02T08:20:00Z",
         updatedAt: "2025-03-02T08:20:00Z",
         images: [
@@ -164,7 +164,7 @@ describe("ПРОВЕРКА РЕДЮСЕРА СЛАЙСА НАВЫКА [skillSlic
       data: {
         ...skillData,
         id: "skill-5",
-        userId: "user-1",
+        user: { id: "user-1" },
         createdAt: "2025-02-14T15:30:00Z",
         updatedAt: "2025-02-14T15:30:00Z",
       },
@@ -600,7 +600,7 @@ describe("ПРОВЕРКА РЕДЮСЕРА СЛАЙСА НАВЫКА [skillSlic
       data: {
         ...skillData,
         id: "skill-5",
-        userId: "user-1",
+        user: { id: "user-1" },
         createdAt: "2025-02-14T15:30:00Z",
         updatedAt: "2025-02-14T15:30:00Z",
       },

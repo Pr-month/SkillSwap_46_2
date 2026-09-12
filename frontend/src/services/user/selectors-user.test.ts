@@ -40,7 +40,7 @@ const makeSkill = (overrides: Partial<ISkill> & { id: string }): ISkill => ({
   description: "Desc",
   skillSubcategory: "sub-1",
   images: [],
-  userId: "user-1",
+  user: { id: "user-1" },
   createdAt: "2024-01-01T00:00:00.000Z",
   updatedAt: "2024-01-01T00:00:00.000Z",
   ...overrides,
@@ -184,9 +184,9 @@ describe("selectNewestUsers", () => {
 //selectRecommendedUsers
 describe("selectRecommendedUsers", () => {
   const skills = [
-    makeSkill({ id: "skill-1", skillSubcategory: "sub-a", userId: "u1" }),
-    makeSkill({ id: "skill-2", skillSubcategory: "sub-b", userId: "u2" }),
-    makeSkill({ id: "skill-3", skillSubcategory: "sub-a", userId: "u3" }),
+    makeSkill({ id: "skill-1", skillSubcategory: "sub-a", user: { id: "u1" } }),
+    makeSkill({ id: "skill-2", skillSubcategory: "sub-b", user: { id: "u2" } }),
+    makeSkill({ id: "skill-3", skillSubcategory: "sub-a", user: { id: "u3" } }),
   ];
 
   it("без авторизации возвращает 9 случайных пользователей", () => {
@@ -240,9 +240,9 @@ describe("selectRecommendedUsers", () => {
 //selectSimilarUsers
 describe("selectSimilarUsers", () => {
   const skills = [
-    makeSkill({ id: "skill-1", skillSubcategory: "sub-a", userId: "u1" }),
-    makeSkill({ id: "skill-2", skillSubcategory: "sub-a", userId: "u2" }),
-    makeSkill({ id: "skill-3", skillSubcategory: "sub-b", userId: "u3" }),
+    makeSkill({ id: "skill-1", skillSubcategory: "sub-a", user: { id: "u1" } }),
+    makeSkill({ id: "skill-2", skillSubcategory: "sub-a", user: { id: "u2" } }),
+    makeSkill({ id: "skill-3", skillSubcategory: "sub-b", user: { id: "u3" } }),
   ];
 
   it("возвращает пользователей с навыком из той же подкатегории", () => {
