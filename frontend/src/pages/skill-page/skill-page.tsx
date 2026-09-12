@@ -31,6 +31,8 @@ import {
 } from "../../services/request/actions";
 import { fetchUpdateCurrentUser } from "../../services/auth/actions";
 import { showToast } from "../../utils/toast";
+import {formatUser} from "../../api/userApi";
+import type { IUserProfileOnBackend } from "../../utils/types";
 
 const getAgeNumber = (birthDate: string): number => {
   const today = new Date();
@@ -57,27 +59,11 @@ export function SkillPage() {
   const skills = useSelector((state) => state.skills.data);
   const selectedSkill =
     skills.find((skill) => String(skill.id) === String(id)) ?? null;
-  const rawSkillUser = (selectedSkill as any)?.user ?? null;
+  const rawSkillUser: Partial<IUserProfileOnBackend> & {age?: number} | null = selectedSkill?.user ?? null;
   const selectedUserFromSkill = rawSkillUser
     ? {
-        id: rawSkillUser.id ?? selectedSkill?.user?.id ?? "",
-        email: rawSkillUser.email ?? "",
-        name: rawSkillUser.name ?? "",
-        birthDate: rawSkillUser.birthdate ?? rawSkillUser.birthDate ?? "",
-        age: typeof rawSkillUser.age === "number" ? rawSkillUser.age : null,
-        gender: rawSkillUser.gender ?? "UNSPECIFIED",
-        city: rawSkillUser.city?.name ?? "",
-        avatar: rawSkillUser.avatar ?? "",
-        aboutMe: rawSkillUser.about ?? "",
-        likesSkillsIds: Array.isArray(rawSkillUser.favoriteSkills)
-          ? rawSkillUser.favoriteSkills.map((skill: any) => skill.id)
-          : [],
+        ...formatUser(rawSkillUser as IUserProfileOnBackend),
         userSkill: selectedSkill?.id ?? "",
-        interestedSkillsSubcategoriesIds: Array.isArray(rawSkillUser.wantToLearn)
-          ? rawSkillUser.wantToLearn.map((category: any) => category.id)
-          : [],
-        createdAt: selectedSkill?.createdAt ?? "",
-        updatedAt: selectedSkill?.createdAt ?? "",
       }
     : null;
 

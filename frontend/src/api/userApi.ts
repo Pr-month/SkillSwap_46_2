@@ -8,7 +8,7 @@ interface ApiResponse<T> {
   data: T;
 }
 
-const formatUser = (user: IUserProfileOnBackend): IUserProfile => ({
+export const formatUser = (user: IUserProfileOnBackend): IUserProfile => ({
   id: user.id,
   email: user.email,
   name: user.name ?? "",
