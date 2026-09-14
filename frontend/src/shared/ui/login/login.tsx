@@ -2,7 +2,7 @@ import type { FC } from "react";
 import type { LoginUIProps } from "./types";
 import styles from "./login.module.css";
 import lightBulb from "../../../assets/images/light-bulb.svg";
-import googleLogo from "../../../assets/images/Google.svg";
+
 import divider from "../../../assets/images/Divider.svg";
 import { Button } from "../button";
 import { Link } from "react-router-dom";
@@ -18,6 +18,7 @@ export const LoginUI: FC<LoginUIProps> = ({
   handleSubmit,
   password,
   setPassword,
+  onYandexLogin,
 }) => (
   <AuthLayout
     type="login"
@@ -30,10 +31,16 @@ export const LoginUI: FC<LoginUIProps> = ({
   >
     <div className={styles.login__form}>
       <div className={styles.accounts}>
-        <div className={styles.account__google}>
-          <img src={googleLogo} alt="Логотип Google" />
-          <span>Продолжить с Google</span>
-        </div>
+        <button
+          type="button"
+          className={styles.account__yandex}
+          onClick={onYandexLogin}
+        >
+          <span className={styles.yandexLogo} aria-hidden="true">
+            Я
+          </span>
+          <span>Продолжить с Яндекс ID</span>
+        </button>
         <div className={styles.account__apple}>
           <Icon name="apple" size={24} color="currentColor" />
           <span>Продолжить с Apple</span>
