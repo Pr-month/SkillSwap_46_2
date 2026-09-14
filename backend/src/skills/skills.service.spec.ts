@@ -3,7 +3,7 @@ import {
   ForbiddenException,
   NotFoundException,
 } from '@nestjs/common';
-import { Repository, SelectQueryBuilder } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Category } from '../categories/entities/category.entity';
 import { User } from '../users/entities/user.entity';
 import { UsersService } from '../users/users.service';
