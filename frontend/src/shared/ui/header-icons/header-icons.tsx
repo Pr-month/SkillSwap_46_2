@@ -11,6 +11,7 @@ import type { TNotificationGroupItem } from "../notification-group/types";
 import styles from "./header.icons.module.css";
 import { useDispatch, useSelector } from "../../../services/store";
 import { fetchMyRequests } from "../../../services/request/actions";
+import { useNotificationsSocket } from "../../lib/use-notifications-socket";
 
 const MONTHS = [
   "января",
@@ -80,6 +81,12 @@ export const HeaderIcons: React.FC<THeaderIconsProps> = ({ isUserAuth }) => {
   const { isDarkTheme, toggleTheme } = useContext(ThemeContext);
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  useNotificationsSocket({
+    enabled: isUserAuth,
+    onNotification: () => {
+      dispatch(fetchMyRequests());
+    },
+  });
 
   const requestsReceived = useSelector((state) => state.requests.received);
   const requestsSent = useSelector((state) => state.requests.sent);

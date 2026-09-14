@@ -36,6 +36,7 @@
     "reactjs-popup": "^2.0.6",
     "redux-thunk": "^3.1.0",
     "slick-carousel": "^1.8.1",
+    "socket.io-client": "^4.8.3",
     "swiper": "^12.1.2"
   },
   "devDependencies": {
@@ -69,6 +70,7 @@
     "eslint-plugin-storybook": "^10.2.16",
     "globals": "^16.5.0",
     "jest": "^30.3.0",
+    "jest-environment-jsdom": "^30.3.0",
     "jsdom": "^28.1.0",
     "playwright": "^1.58.2",
     "prettier": "^3.8.1",
