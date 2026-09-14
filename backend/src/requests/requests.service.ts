@@ -12,6 +12,7 @@ import { Skill } from '../skills/entities/skill.entity';
 import { CreateRequestDto } from './dto/create-request.dto';
 import { RequestStatus } from './request-status.enums';
 import { MailService } from '../mail/mail.service';
+import { NotificationsGateway } from '../notifications/notifications.gateway';
 
 @Injectable()
 export class RequestsService {
@@ -23,14 +24,17 @@ export class RequestsService {
     @InjectRepository(Skill)
     private skillsRepository: Repository<Skill>,
     private readonly mailService: MailService,
+    private readonly notificationsGateway: NotificationsGateway,
   ) {}
 
   async create(
     createRequestDto: CreateRequestDto,
     senderId: string,
   ): Promise<Request> {
+    let receiverId: string | undefined;
     let receiverEmail: string | undefined;
     let skillTitle: string | undefined;
+    let senderName: string | undefined;
 
     const saved = await this.requestsRepository.manager.transaction(
       async (manager) => {
@@ -67,7 +71,7 @@ export class RequestsService {
           throw new BadRequestException('Навыки совпадают');
         }
 
-        const receiverId = requestedSkill.user.id;
+        receiverId = requestedSkill.user.id;
 
         if (senderId === receiverId) {
           throw new BadRequestException('Нельзя отправить заявку себе');
@@ -75,6 +79,8 @@ export class RequestsService {
 
         receiverEmail = requestedSkill.user.email;
         skillTitle = requestedSkill.title;
+        senderName =
+          offeredSkill.user.name ?? offeredSkill.user.email ?? 'Пользователь';
 
         const request = requestRepo.create({
           sender: { id: senderId },
@@ -88,10 +94,24 @@ export class RequestsService {
     );
 
     if (receiverEmail && skillTitle) {
-      await this.sendNotification(
+      await this.sendEmailNotification(
         receiverEmail,
         'Новая заявка на обмен навыками',
         `Поступила новая заявка на навык «${skillTitle}».`,
+      );
+    }
+
+    if (receiverId && senderName && skillTitle) {
+      const notificationReceiverId = receiverId;
+      const notificationSenderName = senderName;
+      const notificationSkillTitle = skillTitle;
+
+      await this.sendSocketNotification(() =>
+        this.notificationsGateway.notifyNewRequest(
+          notificationReceiverId,
+          notificationSenderName,
+          notificationSkillTitle,
+        ),
       );
     }
 
@@ -127,7 +147,7 @@ export class RequestsService {
   ): Promise<Request> {
     const request = await this.requestsRepository.findOne({
       where: { id },
-      relations: ['receiver', 'sender'],
+      relations: ['receiver', 'sender', 'requestedSkill'],
     });
 
     if (!request) {
@@ -150,17 +170,41 @@ export class RequestsService {
     if (request.sender?.email) {
       const statusText =
         status === RequestStatus.ACCEPTED ? 'принята' : 'отклонена';
-      await this.sendNotification(
+
+      await this.sendEmailNotification(
         request.sender.email,
         'Статус заявки обновлён',
         `Ваша заявка на обмен навыками была ${statusText}.`,
       );
     }
 
+    const recipientId = request.sender?.id;
+    const fromUser =
+      request.receiver?.name ?? request.receiver?.email ?? 'Пользователь';
+    const skillName = request.requestedSkill?.title;
+
+    if (recipientId && skillName) {
+      await this.sendSocketNotification(() => {
+        if (status === RequestStatus.ACCEPTED) {
+          return this.notificationsGateway.notifyRequestAccepted(
+            recipientId,
+            fromUser,
+            skillName,
+          );
+        }
+
+        return this.notificationsGateway.notifyRequestRejected(
+          recipientId,
+          fromUser,
+          skillName,
+        );
+      });
+    }
+
     return saved;
   }
 
-  private async sendNotification(
+  private async sendEmailNotification(
     email: string,
     subject: string,
     text: string,
@@ -169,6 +213,16 @@ export class RequestsService {
       await this.mailService.sendUserNotification(email, { subject, text });
     } catch (error) {
       this.logger.error(`Failed to send email to ${email}`, error as Error);
+    }
+  }
+
+  private async sendSocketNotification(
+    send: () => Promise<unknown>,
+  ): Promise<void> {
+    try {
+      await send();
+    } catch (error) {
+      this.logger.error('Failed to save or send notification', error as Error);
     }
   }
 

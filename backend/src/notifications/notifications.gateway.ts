@@ -7,6 +7,8 @@ import {
 import { Server } from 'socket.io';
 import { WsJwtGuard } from '../auth/guards/ws-jwt.guard';
 import { SocketWithUser } from '../auth/auth.types';
+import { Notification } from './entities/notification.entity';
+import { NotificationsService } from './notifications.service';
 import { NotificationPayload, NotificationType } from './notifications.types';
 
 @UseGuards(WsJwtGuard)
@@ -17,7 +19,10 @@ export class NotificationsGateway implements OnGatewayConnection {
   @WebSocketServer()
   server: Server;
 
-  constructor(private readonly wsJwtGuard: WsJwtGuard) {}
+  constructor(
+    private readonly wsJwtGuard: WsJwtGuard,
+    private readonly notificationsService: NotificationsService,
+  ) {}
 
   // Гарды не выполняются на lifecycle-хуках, поэтому токен проверяем вручную
   handleConnection(client: SocketWithUser) {
@@ -32,12 +37,22 @@ export class NotificationsGateway implements OnGatewayConnection {
     }
   }
 
-  notifyUser(userId: string, payload: NotificationPayload) {
-    this.server.to(userId).emit('notificateNewRequest', payload);
+  async notifyUser(
+    userId: string,
+    payload: NotificationPayload,
+  ): Promise<Notification> {
+    const notification = await this.notificationsService.create(
+      userId,
+      payload,
+    );
+
+    this.server.to(userId).emit('notificateNewRequest', notification);
+
+    return notification;
   }
 
   notifyNewRequest(ownerId: string, fromUser: string, skillName: string) {
-    this.notifyUser(ownerId, {
+    return this.notifyUser(ownerId, {
       type: NotificationType.NEW_REQUEST,
       skillName,
       fromUser,
@@ -49,7 +64,7 @@ export class NotificationsGateway implements OnGatewayConnection {
     fromUser: string,
     skillName: string,
   ) {
-    this.notifyUser(applicantId, {
+    return this.notifyUser(applicantId, {
       type: NotificationType.REQUEST_ACCEPTED,
       skillName,
       fromUser,
@@ -61,7 +76,7 @@ export class NotificationsGateway implements OnGatewayConnection {
     fromUser: string,
     skillName: string,
   ) {
-    this.notifyUser(applicantId, {
+    return this.notifyUser(applicantId, {
       type: NotificationType.REQUEST_REJECTED,
       skillName,
       fromUser,
