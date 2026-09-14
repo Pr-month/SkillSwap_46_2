@@ -20,24 +20,6 @@ interface UserSectionProps {
   isSorted?: boolean;
 }
 
-function getAgeFromBirthDate(birthDate: string): number | null {
-  const birth = new Date(birthDate);
-
-  if (Number.isNaN(birth.getTime())) {
-    return null;
-  }
-
-  const today = new Date();
-  let age = today.getFullYear() - birth.getFullYear();
-  const monthDiff = today.getMonth() - birth.getMonth();
-
-  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
-    age -= 1;
-  }
-
-  return age >= 0 ? age : null;
-}
-
 export const UserSection: FC<UserSectionProps> = ({
   title,
   items,
@@ -53,7 +35,6 @@ export const UserSection: FC<UserSectionProps> = ({
   const sentRequests = useSelector((state) => state.requests.sent);
   const favoriteIds = useSelector(selectFavoriteIds);
 
-
   const handleFavoriteClick = (skillId: TId): void => {
     if (!currentUser) {
       return;
@@ -67,7 +48,6 @@ export const UserSection: FC<UserSectionProps> = ({
   // и отображается пустым/дефолтным, а не скрывается).
   const validItems = items.filter((item) => Boolean(item.user.name?.trim()));
   if (validItems.length === 0) {
-
     return (
       <section className={styles.section}>
         <SkillCardGroupHeader

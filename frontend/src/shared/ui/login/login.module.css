@@ -91,3 +91,45 @@
 .registration__link:hover {
   text-decoration: underline;
 }
+.account__yandex {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--space-12, 12px);
+  width: 100%;
+  padding: var(--space-12, 12px);
+  border: 1px solid var(--color-border, #9ca197);
+  border-radius: var(--radius-s, 12px);
+  background-color: transparent;
+  color: inherit;
+  font-family: inherit;
+  font-size: var(--fs-body, 16px);
+  line-height: var(--lh-body, 24px);
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.account__yandex:hover {
+  border-color: #fc3f1d;
+  background-color: rgb(252 63 29 / 6%);
+}
+
+.account__yandex:focus-visible {
+  outline: 2px solid #fc3f1d;
+  outline-offset: 2px;
+}
+
+.yandexLogo {
+  display: inline-flex;
+  flex: 0 0 24px;
+  justify-content: center;
+  align-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  color: #ffffff;
+  background-color: #fc3f1d;
+  font-weight: 500;
+}

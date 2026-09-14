@@ -3,6 +3,7 @@ import { Socket } from 'socket.io';
 import { DefaultEventsMap } from 'socket.io/dist/typed-events';
 import { Role } from '../shared/enums/role.enum';
 import { CityShort } from '../cities/cities.types';
+import { OAuthUser } from './oauth/oauth.types';
 
 export type JwtPayload = {
   sub: string;
@@ -48,4 +49,8 @@ export type RequestWithRefreshToken = Request & {
 
 export type AuthResponse = {
   user: JwtPayload;
+};
+
+export type RequestWithOAuthUser = Request & {
+  user: OAuthUser;
 };

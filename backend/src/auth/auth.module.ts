@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { ConfigType } from '@nestjs/config';
+import { ConfigModule, ConfigType } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { AuthController } from './auth.controller';
@@ -14,10 +14,14 @@ import { UsersModule } from '../users/users.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from '../users/entities/user.entity';
 import { City } from '../cities/entities/city.entity';
+import { yandexOAuthConfig } from '../config/yandex-oauth.config';
+import { YandexAuthController } from './oauth/yandex-auth.controller';
+import { YandexStrategy } from './oauth/yandex.strategy';
 
 @Module({
   imports: [
     PassportModule,
+    ConfigModule.forFeature(yandexOAuthConfig),
     UsersModule,
     TypeOrmModule.forFeature([User, City]),
     JwtModule.registerAsync({
@@ -30,7 +34,7 @@ import { City } from '../cities/entities/city.entity';
       }),
     }),
   ],
-  controllers: [AuthController],
+  controllers: [AuthController, YandexAuthController],
   providers: [
     AuthService,
     AccessTokenGuard,
@@ -38,6 +42,7 @@ import { City } from '../cities/entities/city.entity';
     RefreshTokenGuard,
     RefreshTokenStrategy,
     WsJwtGuard,
+    YandexStrategy,
   ],
   exports: [JwtModule, AccessTokenGuard, RefreshTokenGuard, WsJwtGuard],
 })
