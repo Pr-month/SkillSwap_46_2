@@ -6,6 +6,7 @@ import { showToast } from "../utils/toast";
 interface RequestConfig extends RequestInit {
   showErrorToast?: boolean;
   showSuccessToast?: boolean;
+  silentStatuses?: number[];
 }
 
 const API_BASE_URL = "/api";
@@ -31,7 +32,7 @@ export async function request<T>(
   url: string,
   config: RequestConfig = {},
 ): Promise<T> {
-  const { showErrorToast = true, ...fetchConfig } = config;
+  const { showErrorToast = true, silentStatuses = [], ...fetchConfig } = config;
 
   const isFormData = fetchConfig.body instanceof FormData;
 
@@ -65,8 +66,8 @@ export async function request<T>(
     }
 
     const errorData = await parseErrorResponse(response);
-
-    if (showErrorToast) {
+    const isSilentStatus = silentStatuses.includes(response.status);
+    if (showErrorToast && !isSilentStatus) {
       const { message, errorCode } = handleError(
         errorData || {
           code: "unknown",
