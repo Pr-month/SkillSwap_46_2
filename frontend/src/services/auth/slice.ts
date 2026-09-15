@@ -12,24 +12,50 @@ import {
 } from "./actions.ts";
 import type { AuthState } from "./types.ts";
 import type { IRealUserMeResponse, IUserProfile } from "../../utils/types.ts";
-const normalizeCurrentUser = (user: any) => {
+type NormalizableUser = {
+  id?: string;
+  email: string;
+  name?: string | null;
+  birthDate?: string | null;
+  birthdate?: string | null;
+  gender?: IUserProfile["gender"];
+  city?: string | null;
+  avatar?: string | null;
+  aboutMe?: string;
+  likesSkillsIds?: string[];
+  userSkill?: string;
+  interestedSkillsSubcategoriesIds?: string[];
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+const normalizeCurrentUser = (
+  user: NormalizableUser | null | undefined,
+): IUserProfile | null => {
   if (!user) return null;
 
   return {
-    ...user,
-    likesSkillsIds: Array.isArray(user.likesSkillsIds) ? user.likesSkillsIds : [],
+    id: user.id,
+    email: user.email,
+    name: user.name ?? "",
+    birthDate: user.birthDate ?? user.birthdate ?? "",
+    gender: user.gender,
+    city: user.city ?? "",
+    avatar: user.avatar ?? "",
+    aboutMe: user.aboutMe,
+    likesSkillsIds: Array.isArray(user.likesSkillsIds)
+      ? user.likesSkillsIds
+      : [],
+    userSkill: user.userSkill ?? "",
     interestedSkillsSubcategoriesIds: Array.isArray(
       user.interestedSkillsSubcategoriesIds,
     )
       ? user.interestedSkillsSubcategoriesIds
       : [],
-    userSkill: user.userSkill ?? "",
-    city: user.city ?? "",
-    avatar: user.avatar ?? "",
-    birthDate: user.birthDate ?? user.birthdate ?? "",
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
   };
 };
-
 
 // Реальный GET /users/me отдаёт другую форму, чем IUserProfile (city — объект,
 // нет likesSkillsIds/userSkill/interestedSkillsSubcategoriesIds — эти relations
@@ -62,18 +88,18 @@ const initialState: AuthState = {
   checkUserLoading: false,
   checkUserError: null,
 };
- 
+
 const handlePending = (state: AuthState) => {
   state.loading = true;
   state.error = null;
 };
- 
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const handleRejected = (state: AuthState, action: any) => {
   state.loading = false;
   state.error = action.error.message || "Ошибка запроса";
 };
- 
+
 export const authSlice = createSlice({
   name: "auth",
   initialState,
@@ -84,23 +110,14 @@ export const authSlice = createSlice({
       .addCase(fetchRegister.pending, handlePending)
       .addCase(fetchRegister.fulfilled, (state, action) => {
         state.loading = false;
-        const userPayload = action.payload.user as any;
-
         state.currentUser = normalizeCurrentUser({
-          ...userPayload,
-          birthDate: userPayload?.birthDate ?? "",
-          city: userPayload?.city ?? "",
-          avatar: userPayload?.avatar ?? "",
-          likesSkillsIds: userPayload?.likesSkillsIds ?? [],
-          userSkill: userPayload?.userSkill ?? "",
-          interestedSkillsSubcategoriesIds:
-            userPayload?.interestedSkillsSubcategoriesIds ?? [],
-          createdAt: userPayload?.createdAt ?? new Date().toISOString(),
-          updatedAt: userPayload?.updatedAt ?? new Date().toISOString(),
+          ...action.payload.user,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
         });
       })
       .addCase(fetchRegister.rejected, handleRejected)
- 
+
       // login
       .addCase(fetchLogin.pending, handlePending)
       .addCase(fetchLogin.fulfilled, (state, action) => {
@@ -108,14 +125,14 @@ export const authSlice = createSlice({
         state.currentUser = normalizeCurrentUser(action.payload.user);
       })
       .addCase(fetchLogin.rejected, handleRejected)
- 
+
       // logout — куку стирает бэкенд (POST /auth/logout), тут только
       // локально чистим currentUser после успешного ответа.
       .addCase(fetchLogout.fulfilled, (state) => {
         state.currentUser = null;
       })
       .addCase(fetchLogout.rejected, handleRejected)
- 
+
       // profile
       .addCase(fetchProfile.pending, handlePending)
       .addCase(fetchProfile.fulfilled, (state, action) => {
@@ -126,18 +143,18 @@ export const authSlice = createSlice({
         );
       })
       .addCase(fetchProfile.rejected, handleRejected)
- 
+
       // updateCurrentUser
       .addCase(fetchUpdateCurrentUser.pending, handlePending)
       .addCase(fetchUpdateCurrentUser.fulfilled, (state, action) => {
         state.loading = false;
-        state.currentUser = normalizeCurrentUser(action.payload);
-        // action.payload — реальная форма User с бэкенда (через
-        // updateMyProfile), не IUserProfile напрямую — та же причина,
-        // что и у fetchProfile.
+        state.currentUser = mapRealUserToProfile(
+          action.payload as unknown as IRealUserMeResponse,
+          state.currentUser,
+        );
       })
       .addCase(fetchUpdateCurrentUser.rejected, handleRejected)
- 
+
       // updateMyProfile (шаг 2 регистрации / редактирование профиля)
       .addCase(fetchUpdateMyProfile.pending, handlePending)
       .addCase(fetchUpdateMyProfile.fulfilled, (state) => {
@@ -148,14 +165,14 @@ export const authSlice = createSlice({
         // mapRealUserToProfile. Точечный костыль тут больше не нужен.
       })
       .addCase(fetchUpdateMyProfile.rejected, handleRejected)
- 
+
       // updateWantToLearn (шаг 2 регистрации)
       .addCase(fetchUpdateWantToLearn.pending, handlePending)
       .addCase(fetchUpdateWantToLearn.fulfilled, (state) => {
         state.loading = false;
       })
       .addCase(fetchUpdateWantToLearn.rejected, handleRejected);
- 
+
     builder
       .addCase(fetchCheckUser.pending, (state) => {
         state.checkUserLoading = true;
@@ -169,7 +186,7 @@ export const authSlice = createSlice({
         state.checkUserLoading = false;
         state.checkUserError = action.payload;
       })
- 
+
       // ИЗМЕНЕНИЕ ПАРОЛЯ
       .addCase(updatePassword.pending, (state) => {
         state.loading = true;
@@ -185,5 +202,5 @@ export const authSlice = createSlice({
       });
   },
 });
- 
+
 export default authSlice.reducer;
