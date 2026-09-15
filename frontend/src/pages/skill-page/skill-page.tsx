@@ -185,6 +185,8 @@ export function SkillPage() {
 
   const isOwnProfile = currentUser?.id === selectedUser?.id;
 
+  const hasSkill = (currentUser?.skills?.length ?? 0) > 0;
+
   const galleryImages =
     selectedSkill?.images && selectedSkill.images.length > 0
       ? selectedSkill.images
@@ -291,7 +293,8 @@ export function SkillPage() {
       return;
     }
 
-    if (!selectedUser?.id || !currentUser.userSkill) {
+    if (!selectedUser?.id || !hasSkill) {
+      navigate("/skill/create", { state:  { from: `/skill/${id}` } })
       return;
     }
 
@@ -300,7 +303,7 @@ export function SkillPage() {
     try {
       await dispatch(
         createRequestAction({
-          userSkill: currentUser.userSkill,
+          userSkill: currentUser.skills![0],
           requiredSkillUserId: selectedUser.id,
           message: `Хочу предложить обмен по навыку "${selectedSkill?.title ?? "Навык"}"`,
         }),
@@ -562,7 +565,13 @@ export function SkillPage() {
         onClose={() => setIsOfferModalOpen(false)}
       >
         <CreateOffer
-          variant={currentUser ? "created" : "registration"}
+          variant={
+            !currentUser
+              ? "registration"
+              : hasSkill
+                ? "created"
+                : "noSkill"
+          }
           onActionClick={handleOfferModalAction}
         />
       </ModalUI>

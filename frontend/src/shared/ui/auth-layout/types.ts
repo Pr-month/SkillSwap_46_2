@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-export type AuthLayoutType = "login" | "register";
+export type AuthLayoutType = "other" | "register";
 
 export type AuthLayoutProps = {
   type: AuthLayoutType;

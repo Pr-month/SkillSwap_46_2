@@ -126,6 +126,7 @@ export class UsersService {
         city: true,
         wantToLearn: true,
         favoriteSkills: true,
+        skills: true,
       },
     });
   }

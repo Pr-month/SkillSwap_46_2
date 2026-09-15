@@ -30,6 +30,12 @@ const contentMap: Record<CreateOfferVariant, CreateOfferContent> = {
     buttonText: "Продолжить",
     iconName: "user-circle",
   },
+  noSkill: {
+    title: "У вас нет ни одного навыка",
+    description: "Создайте навык, чтобы предложить обмен",
+    buttonText: "Создать навык",
+    iconName: "notification",
+  },
   sent: {
     title: "Вы предложили обмен",
     description: "Теперь дождитесь подтверждения. Вам придёт уведомление",

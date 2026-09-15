@@ -24,6 +24,7 @@ const normalizeCurrentUser = (user: any) => {
       ? user.interestedSkillsSubcategoriesIds
       : [],
     userSkill: user.userSkill ?? "",
+    skills: Array.isArray(user.skills) ? user.skills : [],
     city: user.city ?? "",
     avatar: user.avatar ?? "",
     birthDate: user.birthDate ?? user.birthdate ?? "",
@@ -49,6 +50,7 @@ const mapRealUserToProfile = (
   avatar: user.avatar ?? "",
   likesSkillsIds: previous?.likesSkillsIds ?? [],
   userSkill: previous?.userSkill ?? "",
+  skills: user.skills?.map((skill) => skill.id) ?? previous?.skills ?? [],
   interestedSkillsSubcategoriesIds:
     previous?.interestedSkillsSubcategoriesIds ?? [],
   createdAt: previous?.createdAt ?? "",

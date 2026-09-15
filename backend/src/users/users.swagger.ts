@@ -31,7 +31,8 @@ export function ApiUsersGetMe() {
     ApiResponse({
       status: 200,
       description:
-        'Полный профиль, город возвращается объектом { id, name, region } или null',
+        'Полный профиль, город возвращается объектом { id, name, region } или null. ' +
+        'skills — массив навыков, которым пользователь обучает (owner_id = id пользователя)',
     }),
     ApiResponse({ status: 401, description: 'Пользователь не авторизован' }),
   );

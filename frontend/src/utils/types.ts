@@ -31,6 +31,7 @@ export interface IUserProfile extends IUser {
   aboutMe?: string; // "о себе"
   likesSkillsIds: TId[]; // массив id навыков, которые лайкнул пользователь
   userSkill?: TId; // навык пользователя, которому он может научить
+  skills?: TId[]; // id всех навыков пользователя (owner_id = user.id), для currentUser — проверка "есть ли хотя бы один скилл"
   interestedSkillsSubcategoriesIds: TId[]; // id[] покатегорий, которым пользователь хочет научиться
   createdAt?: string;
   updatedAt?: string;
@@ -253,8 +254,9 @@ export interface IPublicSkillsFeedResponse {
  
 /** РЕАЛЬНЫЙ ОТВЕТ GET /users/me — форма настоящей сущности User с бэкенда,
  *  отличается от IUserProfile (city — объект, а не строка; нет
- *  likesSkillsIds/userSkill/interestedSkillsSubcategoriesIds — эти relations
- *  сейчас этим эндпоинтом не подгружаются, см. чат с бэком). */
+ *  likesSkillsIds/interestedSkillsSubcategoriesIds — эти relations
+ *  сейчас этим эндпоинтом не подгружаются, см. чат с бэком).
+ *  skills — навыки пользователя (relation owner_id), эндпоинт их отдаёт. */
 export interface IRealUserMeResponse {
   id: TId;
   email: string;
@@ -265,4 +267,5 @@ export interface IRealUserMeResponse {
   avatar: string | null;
   role: string;
   city: { id: TId; name: string; region: string } | null;
+  skills?: { id: TId }[];
 }

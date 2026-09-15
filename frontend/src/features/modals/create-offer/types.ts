@@ -2,7 +2,8 @@ export type CreateOfferVariant =
   | "accepted"
   | "created"
   | "registration"
-  | "sent";
+  | "sent"
+  | "noSkill";
 
 export interface CreateOfferProps {
   variant: CreateOfferVariant;

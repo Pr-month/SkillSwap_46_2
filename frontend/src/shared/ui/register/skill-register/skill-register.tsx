@@ -117,7 +117,7 @@ export const SkillRegister: FC<SkillRegisterProps> = ({
   return (
     <>
       <AuthLayout
-        type="register"
+        type="other"
         currentStep={3}
         totalSteps={3}
         image={schoolBoard}
@@ -125,6 +125,7 @@ export const SkillRegister: FC<SkillRegisterProps> = ({
           title: "Укажите, чем вы готовы поделиться",
           text: "Так другие люди смогут увидеть ваши предложения и предложить вам обмен!",
         }}
+        title={"Создайте навык"}
       >
         <form className={styles.form} name="register" onSubmit={handleSubmit}>
           <div className={styles.fields}>

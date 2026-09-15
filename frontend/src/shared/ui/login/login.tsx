@@ -20,7 +20,7 @@ export const LoginUI: FC<LoginUIProps> = ({
   setPassword,
 }) => (
   <AuthLayout
-    type="login"
+    type="other"
     title="Вход"
     image={lightBulb}
     description={{

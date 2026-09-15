@@ -10,6 +10,7 @@ import { ProfilePage } from "../pages/profil-page/profile-page";
 import { FavoritesPage } from "../pages/favorites-page/favorites-page";
 import { ProtectedLayout, PublicLayout } from "./route-layout";
 import { ScrollToTop } from "./scroll-to-top";
+import { SkillCreate } from "../pages/skill-create";
 
 /** КОНФИГУРАЦИЯ РОУТЕРА */
 export const router = createBrowserRouter([
@@ -40,10 +41,6 @@ export const router = createBrowserRouter([
       {
         element: <ProtectedLayout />,
         children: [
-          {
-            path: "/skill/create",
-            element: <SkillPage />,
-          },
           {
             path: "/skill/edit/:id",
             element: <SkillPage />,
@@ -86,6 +83,18 @@ export const router = createBrowserRouter([
       {
         path: "/login",
         element: <Login />,
+      },
+    ],
+  },
+
+  // Маршрут без общего Layout, но с проверкой авторизации
+  // (страница сама рендерит AuthLayout со своим хедером, как login/registration)
+  {
+    element: <ProtectedLayout />,
+    children: [
+      {
+        path: "/skill/create",
+        element: <SkillCreate />,
       },
     ],
   },
